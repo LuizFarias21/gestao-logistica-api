@@ -41,7 +41,8 @@ INSTALLED_APPS = [
     'logistica',
     'usuarios',
     'rest_framework',
-
+    'rest_framework.authtoken',
+    'django_filters'
 ]
 
 MIDDLEWARE = [
