@@ -140,5 +140,6 @@ git push origin dev
 * Rode `ruff format .` e `ruff check .` para manter o código padronizado.
 * Escreva commits pequenos e focados — facilita a revisão.
 * Antes de fazer `git push`é recomendável rodar `git pull origin dev` antes.
+* Se instalar alguma biblioteca/framework, lembre se de rodar `pip freeze > requirements.txt`.
 
 ---
