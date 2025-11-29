@@ -82,7 +82,16 @@ ruff check .
 
 ---
 
-## 6. Faça commits — Conventional Commits em português
+## 6. Rode o projeto django e teste localmente
+```bash
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
+
+---
+
+## 7. Faça commits — Conventional Commits em português
 
 Use o padrão **Conventional Commits**, em português. Inclua **#<número-da-issue>** no início da mensagem para vincular à issue quando houver.
 
@@ -111,7 +120,7 @@ git commit -m "#12 fix: corrige cálculo do total do pedido"
 
 ---
 
-## 7. Abra um Pull Request
+## 8. Abra um Pull Request
 
 1. Faça push da sua branch para o repositório remoto:
 
@@ -126,7 +135,7 @@ git push origin dev
 
 ---
 
-## 8. Observações e boas práticas
+## 9. Observações e boas práticas
 
 * Rode `ruff format .` e `ruff check .` para manter o código padronizado.
 * Escreva commits pequenos e focados — facilita a revisão.
