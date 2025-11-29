@@ -80,6 +80,11 @@ Você também pode verificar problemas sem aplicar alterações com:
 ruff check .
 ```
 
+E por fim, rodar o linting:
+```bash
+ruff check --fix
+```
+
 ---
 
 ## 6. Rode o projeto django e teste localmente
