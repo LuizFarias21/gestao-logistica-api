@@ -126,7 +126,7 @@ AUTH_USER_MODEL = "usuarios.CustomUser"
 
 # Swagger / API Documentation Settings
 SPECTACULAR_SETTINGS = {
-    "TITLE": "API do Sistema de Frotas",
+    "TITLE": "API de Gestão de Logística",
     "DESCRIPTION": "Documentação completa da API com usuários, frota e demais módulos.",
     "VERSION": "1.0.0",
 }
