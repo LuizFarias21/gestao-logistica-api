@@ -1,3 +1,5 @@
+# CRUD de usuários conforme issue #2
+
 from rest_framework import generics
 from django.contrib.auth import get_user_model
 from rest_framework.permissions import AllowAny
