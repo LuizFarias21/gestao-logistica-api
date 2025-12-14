@@ -45,7 +45,10 @@ class Veiculo(models.Model):
     )
 
     status = models.CharField(
-        max_length=20, choices=STATUS_VEICULOS, default="DISPONIVEL"
+        max_length=20,
+        choices=STATUS_VEICULOS,
+        default="DISPONIVEL",
+        help_text="Status atual do veículo",
     )
 
     motorista = models.OneToOneField(
