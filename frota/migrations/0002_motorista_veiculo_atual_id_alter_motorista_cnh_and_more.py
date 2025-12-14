@@ -4,45 +4,54 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('frota', '0001_initial'),
+        ("frota", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='motorista',
-            name='veiculo_atual_id',
-            field=models.IntegerField(blank=True, null=True, unique=True, verbose_name='ID do Veículo Atual'),
+            model_name="motorista",
+            name="veiculo_atual_id",
+            field=models.IntegerField(
+                blank=True, null=True, unique=True, verbose_name="ID do Veículo Atual"
+            ),
         ),
         migrations.AlterField(
-            model_name='motorista',
-            name='cnh',
+            model_name="motorista",
+            name="cnh",
             field=models.CharField(max_length=10, unique=True),
         ),
         migrations.AlterField(
-            model_name='motorista',
-            name='cpf',
+            model_name="motorista",
+            name="cpf",
             field=models.CharField(max_length=11, unique=True),
         ),
         migrations.AlterField(
-            model_name='motorista',
-            name='data_cadastro',
+            model_name="motorista",
+            name="data_cadastro",
             field=models.DateTimeField(auto_now_add=True),
         ),
         migrations.AlterField(
-            model_name='motorista',
-            name='nome',
+            model_name="motorista",
+            name="nome",
             field=models.CharField(max_length=100),
         ),
         migrations.AlterField(
-            model_name='motorista',
-            name='status',
-            field=models.CharField(choices=[('disponivel', 'Disponível'), ('em_rota', 'Em Rota'), ('inativo', 'Inativo')], default='disponivel', max_length=10),
+            model_name="motorista",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("disponivel", "Disponível"),
+                    ("em_rota", "Em Rota"),
+                    ("inativo", "Inativo"),
+                ],
+                default="disponivel",
+                max_length=10,
+            ),
         ),
         migrations.AlterField(
-            model_name='motorista',
-            name='telefone',
+            model_name="motorista",
+            name="telefone",
             field=models.CharField(max_length=20),
         ),
     ]

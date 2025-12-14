@@ -4,23 +4,71 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Motorista',
+            name="Motorista",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nome', models.CharField(help_text='Insira o nome seu completo!', max_length=100)),
-                ('cpf', models.CharField(help_text='Insira o CPF com 11 Dígitos, sem pontos ou traços!', max_length=11, unique=True)),
-                ('cnh', models.CharField(help_text='Insira a CNH com 9 Digitos, sem pontos ou traços!', max_length=9, unique=True)),
-                ('telefone', models.CharField(help_text='Ex: +55 (11) 98765-4321 ou 11987654321', max_length=15)),
-                ('status', models.CharField(choices=[('disponivel', 'Disponível'), ('em_rota', 'Em Rota'), ('ativo', 'Ativo'), ('inativo', 'Inativo')], default='disponivel', max_length=10)),
-                ('data_cadastro', models.DateTimeField(auto_now_add=True, help_text='Data de Cadastro')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "nome",
+                    models.CharField(
+                        help_text="Insira o nome seu completo!", max_length=100
+                    ),
+                ),
+                (
+                    "cpf",
+                    models.CharField(
+                        help_text="Insira o CPF com 11 Dígitos, sem pontos ou traços!",
+                        max_length=11,
+                        unique=True,
+                    ),
+                ),
+                (
+                    "cnh",
+                    models.CharField(
+                        help_text="Insira a CNH com 9 Digitos, sem pontos ou traços!",
+                        max_length=9,
+                        unique=True,
+                    ),
+                ),
+                (
+                    "telefone",
+                    models.CharField(
+                        help_text="Ex: +55 (11) 98765-4321 ou 11987654321",
+                        max_length=15,
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("disponivel", "Disponível"),
+                            ("em_rota", "Em Rota"),
+                            ("ativo", "Ativo"),
+                            ("inativo", "Inativo"),
+                        ],
+                        default="disponivel",
+                        max_length=10,
+                    ),
+                ),
+                (
+                    "data_cadastro",
+                    models.DateTimeField(
+                        auto_now_add=True, help_text="Data de Cadastro"
+                    ),
+                ),
             ],
         ),
     ]
