@@ -16,3 +16,4 @@ class Motorista(models.Model):
         auto_now_add=True,
         editable=False # Opcional: Impede que o campo seja editado no Admin
     )
+    
