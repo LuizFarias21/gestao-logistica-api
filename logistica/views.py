@@ -6,7 +6,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 from .models import Rota, Entrega
 from .serializers import (
     RotaSerializer,
-    RotaStatusSerializer,
     RotaDashboardSerializer,
     AdicionarEntregaRotaSerializer,
 )
