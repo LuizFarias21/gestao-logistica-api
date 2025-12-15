@@ -1,5 +1,11 @@
 from rest_framework import serializers
-from .models import Rota
+from .models import Rota, Entrega
+
+
+class EntregaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Entrega
+        fields = ["id", "descricao", "capacidade", "status"]
 
 
 class RotaSerializer(serializers.ModelSerializer):
@@ -29,6 +35,16 @@ class RotaStatusSerializer(serializers.ModelSerializer):
 class RotaDashboardSerializer(serializers.ModelSerializer):
     motorista = serializers.StringRelatedField()
     veiculo = serializers.StringRelatedField()
+    entregas = EntregaSerializer(many=True)
+
+    capacidade_maxima_veiculo = serializers.DecimalField(
+        source="veiculo.capacidade_maxima",
+        max_digits=10,
+        decimal_places=2,
+        read_only=True,
+    )
+
+    capacidade_disponivel = serializers.SerializerMethodField()
 
     class Meta:
         model = Rota
@@ -37,9 +53,19 @@ class RotaDashboardSerializer(serializers.ModelSerializer):
             "nome",
             "status",
             "data_rota",
-            "capacidade_total_utilizada",
-            "km_total_estimado",
-            "tempo_estimado",
             "motorista",
             "veiculo",
+            "capacidade_maxima_veiculo",
+            "capacidade_total_utilizada",
+            "capacidade_disponivel",
+            "km_total_estimado",
+            "tempo_estimado",
+            "entregas",
         ]
+
+    def get_capacidade_disponivel(self, obj):
+        return obj.veiculo.capacidade_maxima - obj.capacidade_total_utilizada
+
+
+class AdicionarEntregaRotaSerializer(serializers.Serializer):
+    entrega_id = serializers.IntegerField()
