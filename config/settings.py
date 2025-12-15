@@ -58,7 +58,7 @@ SPECTACULAR_SETTINGS = {
     "TITLE": "API de Gestão Logística",
     "DESCRIPTION": "Documentação da API de Gestão Logística",
     "VERSION": "1.0.0",
-    "SERVE_INCLUDE_SCHEMA": False,  
+    "SERVE_INCLUDE_SCHEMA": False,
 }
 
 MIDDLEWARE = [
