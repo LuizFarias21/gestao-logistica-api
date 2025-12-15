@@ -43,13 +43,22 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "django_filters",
+    "drf_spectacular",
 ]
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework.authentication.TokenAuthentication",
         "rest_framework.authentication.SessionAuthentication",
-    ]
+    ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "API de Gestão Logística",
+    "DESCRIPTION": "Documentação da API de Gestão Logística",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,  
 }
 
 MIDDLEWARE = [
