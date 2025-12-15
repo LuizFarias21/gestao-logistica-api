@@ -26,14 +26,14 @@ class RotaViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ["status", "motorista", "data_rota"]
 
-    #Dashboard da Rota
+    # Dashboard da Rota
     @action(detail=True, methods=["get"], url_path="dashboard")
     def dashboard(self, request, pk=None):
         rota = self.get_object()
         serializer = RotaDashboardSerializer(rota)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    #Adicionar entrega com validação de capacidade (Issue 7)
+    # Adicionar entrega com validação de capacidade (Issue 7)
     @action(detail=True, methods=["post"], url_path="entregas")
     def adicionar_entrega(self, request, pk=None):
         rota = self.get_object()
@@ -50,9 +50,7 @@ class RotaViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        nova_capacidade = (
-            rota.capacidade_total_utilizada + entrega.capacidade
-        )
+        nova_capacidade = rota.capacidade_total_utilizada + entrega.capacidade
 
         if nova_capacidade > rota.veiculo.capacidade_maxima:
             return Response(
@@ -69,7 +67,7 @@ class RotaViewSet(viewsets.ModelViewSet):
             status=status.HTTP_201_CREATED,
         )
 
-    #Exclusão com regra de negócio
+    # Exclusão com regra de negócio
     def destroy(self, request, *args, **kwargs):
         rota = self.get_object()
 

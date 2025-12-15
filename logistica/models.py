@@ -110,9 +110,7 @@ class Rota(models.Model):
             .exclude(id=self.id)
             .exists()
         ):
-            raise ValidationError(
-                "Este veículo já está em uma rota em andamento."
-            )
+            raise ValidationError("Este veículo já está em uma rota em andamento.")
 
         # Motorista precisa estar disponível
         if (

@@ -5,43 +5,111 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Motorista',
+            name="Motorista",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nome', models.CharField(max_length=100)),
-                ('status', models.CharField(choices=[('disponivel', 'Disponível'), ('em_rota', 'Em rota')], default='disponivel', max_length=20)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("nome", models.CharField(max_length=100)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[("disponivel", "Disponível"), ("em_rota", "Em rota")],
+                        default="disponivel",
+                        max_length=20,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Veiculo',
+            name="Veiculo",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('placa', models.CharField(max_length=10, unique=True)),
-                ('capacidade_maxima', models.DecimalField(decimal_places=2, max_digits=10)),
-                ('disponivel', models.BooleanField(default=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("placa", models.CharField(max_length=10, unique=True)),
+                (
+                    "capacidade_maxima",
+                    models.DecimalField(decimal_places=2, max_digits=10),
+                ),
+                ("disponivel", models.BooleanField(default=True)),
             ],
         ),
         migrations.CreateModel(
-            name='Rota',
+            name="Rota",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nome', models.CharField(max_length=100)),
-                ('descricao', models.TextField(blank=True, null=True)),
-                ('data_rota', models.DateTimeField()),
-                ('status', models.CharField(choices=[('planejado', 'Planejado'), ('em_andamento', 'Em andamento'), ('concluido', 'Concluído')], default='planejado', max_length=20)),
-                ('capacidade_total_utilizada', models.DecimalField(decimal_places=2, default=0, max_digits=10)),
-                ('km_total_estimado', models.DecimalField(blank=True, decimal_places=2, max_digits=10, null=True)),
-                ('tempo_estimado', models.CharField(blank=True, max_length=50, null=True)),
-                ('motorista', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='rotas', to='logistica.motorista')),
-                ('veiculo', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='rotas', to='logistica.veiculo')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("nome", models.CharField(max_length=100)),
+                ("descricao", models.TextField(blank=True, null=True)),
+                ("data_rota", models.DateTimeField()),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("planejado", "Planejado"),
+                            ("em_andamento", "Em andamento"),
+                            ("concluido", "Concluído"),
+                        ],
+                        default="planejado",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "capacidade_total_utilizada",
+                    models.DecimalField(decimal_places=2, default=0, max_digits=10),
+                ),
+                (
+                    "km_total_estimado",
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=10, null=True
+                    ),
+                ),
+                (
+                    "tempo_estimado",
+                    models.CharField(blank=True, max_length=50, null=True),
+                ),
+                (
+                    "motorista",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="rotas",
+                        to="logistica.motorista",
+                    ),
+                ),
+                (
+                    "veiculo",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="rotas",
+                        to="logistica.veiculo",
+                    ),
+                ),
             ],
         ),
     ]
