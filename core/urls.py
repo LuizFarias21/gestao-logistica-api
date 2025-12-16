@@ -20,9 +20,9 @@ router.register(r"veiculos", VeiculoViewSet)
 #router.register(r"clientes", ClienteViewSet)
 
 urlpatterns = [
-    path("", include(router.urls)),
     path("auth/token/", obtain_auth_token, name="api_token_auth"),
     path("schema/", SpectacularAPIView.as_view(), name="schema"),
     path("docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
     path("docs/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
+    path("", include(router.urls)),
 ]
