@@ -28,7 +28,7 @@ class MotoristaViewSet(viewsets.ModelViewSet):
     Gerenciamento de Motoristas (CRUD).
     Apenas Gestores podem criar, editar ou ver a lista completa de motoristas.
     """
-    
+
     queryset = Motorista.objects.all()
     serializer_class = MotoristaSerializer
     permission_classes = [IsGestor]
