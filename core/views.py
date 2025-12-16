@@ -1,8 +1,6 @@
-from rest_framework import viewsets, filters
-from rest_framework.permissions import is_authenticated
-from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import viewsets
 
-from .models import Cliente, Motorista, Rota, Entrega, Veiculo
+from .models import Cliente, Motorista, Veiculo
 from .serializers import (
     ClienteSerializer,
     MotoristaSerializer,
@@ -13,7 +11,7 @@ from .serializers import (
 from .permissions import IsGestor, IsMotorista, IsCliente
 
 
-class ClientViewSet(viewsets.ModelViewSet):
+class ClienteViewSet(viewsets.ModelViewSet):
     """
     Gerenciamento de Clientes.
     Apenas Gestores podem cadastrar ou ver a lista de clientes.
@@ -30,7 +28,7 @@ class MotoristaViewSet(viewsets.ModelViewSet):
     Gerenciamento de Motoristas (CRUD).
     Apenas Gestores podem criar, editar ou ver a lista completa de motoristas.
     """
-
+    
     queryset = Motorista.objects.all()
     serializer_class = MotoristaSerializer
     permission_classes = [IsGestor]
