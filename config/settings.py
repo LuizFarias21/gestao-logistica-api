@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     "frota",
     "logistica",
     "usuarios",
+    "core",
     "rest_framework",
     "rest_framework.authtoken",
     "django_filters",
@@ -51,6 +52,9 @@ REST_FRAMEWORK = {
         "rest_framework.authentication.TokenAuthentication",
         "rest_framework.authentication.SessionAuthentication",
     ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.IsAuthenticated",
+    ],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
@@ -59,6 +63,7 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "Documentação da API de Gestão Logística",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
+
 }
 
 MIDDLEWARE = [
