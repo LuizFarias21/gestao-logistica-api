@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class LogisticaConfig(AppConfig):
+class CoreConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "logistica"
+    name = "core"
