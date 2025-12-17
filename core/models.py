@@ -1,4 +1,4 @@
-from django.db import models  
+from django.db import models
 from django.contrib.auth.models import User
 
 
@@ -8,7 +8,6 @@ class Cliente(models.Model):
 
 
 class Motorista(models.Model):
-
     STATUS_CHOICES = (
         ("disponivel", "Disponível"),
         ("em_rota", "Em Rota"),
@@ -16,9 +15,7 @@ class Motorista(models.Model):
     )
 
     User = models.OneToOneField(
-        User, 
-        on_delete=models.CASCADE, 
-        related_name='motorista'
+        User, on_delete=models.CASCADE, related_name="motorista"
     )
 
     nome = models.CharField(max_length=100, help_text="Digite o nome do motorista")
@@ -52,28 +49,27 @@ class Motorista(models.Model):
 
 class Veiculo(models.Model):
     motorista = models.OneToOneField(
-        'Motorista', 
-        on_delete=models.SET_NULL, 
-        null=True, 
+        "Motorista",
+        on_delete=models.SET_NULL,
+        null=True,
         blank=True,
-        related_name='veiculo'
+        related_name="veiculo",
     )
 
 
 class Rota(models.Model):
     motorista = models.ForeignKey(
-        Motorista, 
-        on_delete=models.PROTECT, 
-        related_name='rotas'
+        Motorista, on_delete=models.PROTECT, related_name="rotas"
     )
     nome = models.CharField(max_length=100)
 
+
 class Entrega(models.Model):
     motorista = models.ForeignKey(
-        Motorista, 
-        on_delete=models.SET_NULL, 
-        null=True, 
+        Motorista,
+        on_delete=models.SET_NULL,
+        null=True,
         blank=True,
-        related_name='entregas'
+        related_name="entregas",
     )
     codigo_rastreio = models.CharField(max_length=50)
