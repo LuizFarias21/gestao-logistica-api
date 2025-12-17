@@ -8,13 +8,12 @@ from drf_spectacular.views import (
 )
 from .views import (
     MotoristaViewSet,
-    VeiculoViewSet,
 )
 
 router = DefaultRouter()
 
 router.register(r"motoristas", MotoristaViewSet)
-router.register(r"veiculos", VeiculoViewSet)
+# router.register(r"veiculos", VeiculoViewSet)
 # router.register(r"rotas", RotaViewSet)
 # router.register(r"entregas", EntregaViewSet)
 # router.register(r"clientes", ClienteViewSet)
