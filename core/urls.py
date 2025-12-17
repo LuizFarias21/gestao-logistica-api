@@ -6,13 +6,13 @@ from drf_spectacular.views import (
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
-from .views import MotoristaViewSet, VeiculoViewSet
+from .views import MotoristaViewSet, VeiculoViewSet, RotaViewSet
 
 router = DefaultRouter()
 
 router.register(r"motoristas", MotoristaViewSet)
 router.register(r"veiculos", VeiculoViewSet)
-# router.register(r"rotas", RotaViewSet)
+router.register(r"rotas", RotaViewSet)
 # router.register(r"entregas", EntregaViewSet)
 # router.register(r"clientes", ClienteViewSet)
 

@@ -1,11 +1,12 @@
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Cliente, Motorista, Veiculo
+from .models import Cliente, Motorista, Veiculo, Rota, Entrega
 from .serializers import (
     ClienteSerializer,
     MotoristaSerializer,
     RotaSerializer,
+    RotaDashboardSerializer,
     EntregaSerializer,
     VeiculoSerializer,
 )
@@ -91,14 +92,64 @@ class RotaViewSet(viewsets.ModelViewSet):
     Motoristas: Visualizam apenas suas próprias rotas.
     """
 
+    queryset = Rota.objects.all()
     serializer_class = RotaSerializer
     permission_classes = [IsGestor | IsMotorista]
 
     def get_queryset(self):
-        # TODO: Implementar lógica de filtragem.
-        # 1. Se for Gestor (user.is_staff) -> Retornar tudo.
-        # 2. Se for Motorista -> Retornar apenas Rota.objects.filter(motorista=user.motorista)
-        pass
+        user = self.request.user
+
+        # Gestor vê tudo
+        if user.is_staff:
+            return Rota.objects.all()
+
+        # Motorista vê apenas suas rotas
+        if hasattr(user, "motorista"):
+            return Rota.objects.filter(motorista=user.motorista)
+
+        return Rota.objects.none()
+
+    @extend_schema(
+        summary="Dashboard da Rota",
+        description="Retorna dados completos da rota, motorista, veículo e entregas.",
+        responses={200: RotaDashboardSerializer},
+    )
+    @action(detail=True, methods=["get"])
+    def dashboard(self, request, pk=None):
+        rota = self.get_object()
+        serializer = RotaDashboardSerializer(rota)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=["post"])
+    def entregas(self, request, pk=None):
+        rota = self.get_object()
+        entrega_id = request.data.get("entrega_id")
+
+        if not entrega_id:
+            raise ValidationError("Informe o ID da entrega.")
+
+        try:
+            entrega = Entrega.objects.get(id=entrega_id)
+        except Entrega.DoesNotExist:
+            raise ValidationError("Entrega não encontrada.")
+
+        nova_capacidade = rota.capacidade_total_utilizada + entrega.capacidade
+
+        if nova_capacidade > rota.veiculo.capacidade_maxima:
+            raise ValidationError(
+                "Capacidade do veículo excedida ao adicionar esta entrega."
+            )
+
+        rota.entregas.add(entrega)
+        rota.capacidade_total_utilizada = nova_capacidade
+        rota.save()
+
+        return Response({"detail": "Entrega adicionada com sucesso à rota."})
+
+    def perform_destroy(self, instance):
+        if instance.status == "CONCLUIDO":
+            raise ValidationError("Não é possível excluir uma rota já concluída.")
+        super().perform_destroy(instance)
 
 
 class EntregaViewSet(viewsets.ModelViewSet):
@@ -113,8 +164,18 @@ class EntregaViewSet(viewsets.ModelViewSet):
     permission_classes = [IsGestor | IsMotorista | IsCliente]
 
     def get_queryset(self):
-        # TODO: Implementar lógica de filtragem de segurança.
-        # 1. Gestor -> Retorna tudo.
-        # 2. Motorista -> Retorna entregas vinculadas à sua rota atual.
-        # 3. Cliente -> Retorna entregas vinculadas ao seu ID (user.cliente).
-        pass
+        user = self.request.user
+
+        # Gestor vê tudo
+        if user.is_staff:
+            return Entrega.objects.all()
+
+        # Motorista vê entregas das suas rotas
+        if hasattr(user, "motorista"):
+            return Entrega.objects.filter(rota__motorista=user.motorista).distinct()
+
+        # Cliente vê apenas suas próprias entregas
+        if hasattr(user, "cliente"):
+            return Entrega.objects.filter(cliente=user.cliente)
+
+        return Entrega.objects.none()
