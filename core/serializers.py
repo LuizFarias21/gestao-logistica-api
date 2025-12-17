@@ -11,7 +11,7 @@ class ClienteSerializer(serializers.ModelSerializer):
 class MotoristaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Motorista
-        fields = ["id", "nome", "cpf", "cnh", "telefone", "status", "data_cadastro"]
+        fields = "__all__"
 
 
 class VeiculoSerializer(serializers.ModelSerializer):
