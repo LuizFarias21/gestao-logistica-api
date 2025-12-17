@@ -12,6 +12,7 @@ from .serializers import (
 )
 from .permissions import IsGestor, IsMotorista, IsCliente
 from drf_spectacular.utils import extend_schema
+from rest_framework.exceptions import ValidationError
 
 
 class ClienteViewSet(viewsets.ModelViewSet):
@@ -142,6 +143,17 @@ class VeiculoViewSet(viewsets.ModelViewSet):
         serializer = RotaSerializer(veiculo.rotas.all(), many=True)
 
         return Response(serializer.data)
+
+    def perform_destroy(self, instance):
+        """
+        Sobrescreve a exclusão padrão para checar se há rotas em andamento.
+        """
+        if instance.rotas.filter(status="EM_ANDAMENTO").exists():
+            raise ValidationError(
+                "Não é possível excluir este veículo pois ele está vinculado a uma rota em andamento."
+            )
+
+        super().perform_destroy(instance)
 
 
 class RotaViewSet(viewsets.ModelViewSet):
