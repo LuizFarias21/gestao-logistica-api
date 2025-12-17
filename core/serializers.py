@@ -17,7 +17,7 @@ class MotoristaSerializer(serializers.ModelSerializer):
 class VeiculoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Veiculo
-        # TODO: Escrever os fields
+        fields = "__all__"
 
 
 class EntregaSerializer(serializers.ModelSerializer):
