@@ -29,4 +29,4 @@ class EntregaSerializer(serializers.ModelSerializer):
 class RotaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Rota
-        # TODO: Escrever os fields
+        fields = "__all__"

@@ -4,15 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('core', '0003_veiculo_capacidade_maxima_veiculo_km_atual_and_more'),
+        ("core", "0003_veiculo_capacidade_maxima_veiculo_km_atual_and_more"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='veiculo',
-            name='capacidade_maxima',
-            field=models.DecimalField(decimal_places=2, help_text='Capacidade em KG (EX: 320.00)', max_digits=10),
+            model_name="veiculo",
+            name="capacidade_maxima",
+            field=models.DecimalField(
+                decimal_places=2,
+                help_text="Capacidade em KG (EX: 320.00)",
+                max_digits=10,
+            ),
         ),
     ]
