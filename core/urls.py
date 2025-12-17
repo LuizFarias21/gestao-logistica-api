@@ -8,21 +8,21 @@ from drf_spectacular.views import (
 )
 from .views import (
     MotoristaViewSet,
-    VeiculoViewSet,
+    VeiculoViewSet
 )
 
 router = DefaultRouter()
 
 router.register(r"motoristas", MotoristaViewSet)
 router.register(r"veiculos", VeiculoViewSet)
-
+# router.register(r"rotas", RotaViewSet)
+# router.register(r"entregas", EntregaViewSet)
+# router.register(r"clientes", ClienteViewSet)
 
 urlpatterns = [
     path("auth/token/", obtain_auth_token, name="api_token_auth"),
     path("schema/", SpectacularAPIView.as_view(), name="schema"),
     path("docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
     path("docs/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
-    # Rota explícita para listar entregas de um motorista (action 'entregas' no MotoristaViewSet)
-    path("motoristas/<int:pk>/entregas/", MotoristaViewSet.as_view({"get": "entregas"}), name="motorista-entregas"),
     path("", include(router.urls)),
 ]

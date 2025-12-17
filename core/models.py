@@ -14,29 +14,27 @@ class Motorista(models.Model):
         ("inativo", "Inativo"),
     )
 
-    User = models.OneToOneField(
+    user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name="motorista"
     )
 
-    nome = models.CharField(max_length=100, help_text="Digite o nome do motorista")
+    nome = models.CharField(max_length=100, help_text="Nome do motorista")
 
     cpf = models.CharField(
-        max_length=11, unique=True, help_text="Digite o CPF sem ponto ou traço"
+        max_length=11, unique=True, help_text="CPF sem ponto ou traço"
     )
 
     cnh = models.CharField(
-        max_length=11, unique=True, help_text="Digite o CNH sem ponto ou traço"
+        max_length=11, unique=True, help_text="CNH sem ponto ou traço"
     )
 
-    telefone = models.CharField(
-        max_length=20, help_text="Digite o telefone. Ex: (61) 91234-5678"
-    )
+    telefone = models.CharField(max_length=20, help_text="Telefone Ex: (61) 91234-5678")
 
     status = models.CharField(
         max_length=10,
         choices=STATUS_CHOICES,
         default="disponivel",
-        help_text="Selecione o status do motorista",
+        help_text="Status do motorista",
     )
 
     data_cadastro = models.DateTimeField(
