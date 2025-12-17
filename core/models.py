@@ -108,6 +108,9 @@ class Rota(models.Model):
     motorista = models.ForeignKey(
         Motorista, on_delete=models.PROTECT, related_name="rotas"
     )
+
+    veiculo = models.ForeignKey(Veiculo, on_delete=models.PROTECT, related_name="rotas")
+
     nome = models.CharField(max_length=100)
 
 
@@ -119,6 +122,7 @@ class Entrega(models.Model):
         blank=True,
         related_name="entregas",
     )
+
     codigo_rastreio = models.CharField(max_length=50)
 
     

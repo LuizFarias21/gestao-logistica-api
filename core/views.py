@@ -11,6 +11,7 @@ from .serializers import (
     VeiculoSerializer,
 )
 from .permissions import IsGestor, IsMotorista, IsCliente
+from drf_spectacular.utils import extend_schema
 
 
 class ClienteViewSet(viewsets.ModelViewSet):
@@ -26,7 +27,10 @@ class ClienteViewSet(viewsets.ModelViewSet):
 
 
 class MotoristaViewSet(viewsets.ModelViewSet):
-
+    """
+    Gerenciamento de Motoristas (CRUD).
+    Apenas Gestores podem criar, editar ou ver a lista completa de motoristas.
+    """
    
     queryset = Motorista.objects.all()
     serializer_class = MotoristaSerializer
@@ -106,13 +110,38 @@ class MotoristaViewSet(viewsets.ModelViewSet):
 
 class VeiculoViewSet(viewsets.ModelViewSet):
     """
-    Gerenciamento de Veículos (CRUD).
-    Apenas Gestores podem gerenciar a frota.
+    ViewSet para gerenciamento completo da frota de veículos.
+
+    Apenas usuários com perfil de **Gestor** podem criar, editar ou excluir veículos.
     """
 
     queryset = Veiculo.objects.all()
     serializer_class = VeiculoSerializer
     permission_classes = [IsGestor]
+
+    @extend_schema(
+        summary="Listar Veículos Disponíveis",
+        description="Retorna uma lista filtrada contendo apenas os veículos que estão com o status **'DISPONIVEL'** no momento.",
+        responses={200: VeiculoSerializer(many=True)},
+    )
+    @action(detail=False)
+    def disponiveis(self, request):
+        disponiveis = Veiculo.objects.filter(status="DISPONIVEL")
+        serializer = self.get_serializer(disponiveis, many=True)
+
+        return Response(serializer.data)
+
+    @extend_schema(
+        summary="Obter Histórico de Rotas",
+        description="Recupera todas as rotas (histórico de viagens) vinculadas a este veículo específico.",
+        responses={200: RotaSerializer(many=True)},
+    )
+    @action(detail=True)
+    def rotas(self, request, pk=None):
+        veiculo = self.get_object()
+        serializer = RotaSerializer(veiculo.rotas.all(), many=True)
+
+        return Response(serializer.data)
 
 
 class RotaViewSet(viewsets.ModelViewSet):
