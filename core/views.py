@@ -1,5 +1,6 @@
 from rest_framework import viewsets
-
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from .models import Cliente, Motorista, Veiculo
 from .serializers import (
     ClienteSerializer,
@@ -9,6 +10,8 @@ from .serializers import (
     VeiculoSerializer,
 )
 from .permissions import IsGestor, IsMotorista, IsCliente
+from drf_spectacular.utils import extend_schema
+from rest_framework.exceptions import ValidationError
 
 
 class ClienteViewSet(viewsets.ModelViewSet):
@@ -36,13 +39,49 @@ class MotoristaViewSet(viewsets.ModelViewSet):
 
 class VeiculoViewSet(viewsets.ModelViewSet):
     """
-    Gerenciamento de Veículos (CRUD).
-    Apenas Gestores podem gerenciar a frota.
+    ViewSet para gerenciamento completo da frota de veículos.
+
+    Apenas usuários com perfil de **Gestor** podem criar, editar ou excluir veículos.
     """
 
     queryset = Veiculo.objects.all()
     serializer_class = VeiculoSerializer
     permission_classes = [IsGestor]
+
+    @extend_schema(
+        summary="Listar Veículos Disponíveis",
+        description="Retorna uma lista filtrada contendo apenas os veículos que estão com o status **'DISPONIVEL'** no momento.",
+        responses={200: VeiculoSerializer(many=True)},
+    )
+    @action(detail=False)
+    def disponiveis(self, request):
+        disponiveis = Veiculo.objects.filter(status="DISPONIVEL")
+        serializer = self.get_serializer(disponiveis, many=True)
+
+        return Response(serializer.data)
+
+    @extend_schema(
+        summary="Obter Histórico de Rotas",
+        description="Recupera todas as rotas (histórico de viagens) vinculadas a este veículo específico.",
+        responses={200: RotaSerializer(many=True)},
+    )
+    @action(detail=True)
+    def rotas(self, request, pk=None):
+        veiculo = self.get_object()
+        serializer = RotaSerializer(veiculo.rotas.all(), many=True)
+
+        return Response(serializer.data)
+
+    def perform_destroy(self, instance):
+        """
+        Sobrescreve a exclusão padrão para checar se há rotas em andamento.
+        """
+        if instance.rotas.filter(status="EM_ANDAMENTO").exists():
+            raise ValidationError(
+                "Não é possível excluir este veículo pois ele está vinculado a uma rota em andamento."
+            )
+
+        super().perform_destroy(instance)
 
 
 class RotaViewSet(viewsets.ModelViewSet):
