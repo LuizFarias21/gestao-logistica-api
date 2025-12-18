@@ -17,14 +17,22 @@ from rest_framework.exceptions import ValidationError
 
 class ClienteViewSet(viewsets.ModelViewSet):
     """
-    Gerenciamento de Clientes.
-    Apenas Gestores podem cadastrar ou ver a lista de clientes.
-    Clientes comuns não precisam acessar esse endpoint (eles acessam /api/entregas/).
+    Gerencia os Clientes.
+    - Gestor: Pode cadastrar, listar todos e deletar.
+    - Cliente: Pode ver apenas seu próprio perfil e atualizar dados básicos (telefone/endereço).
     """
 
-    queryset = Cliente.objects.all()
     serializer_class = ClienteSerializer
-    permission_classes = [IsGestor]
+    permission_classes = [IsGestor | IsCliente]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.is_staff:
+            return Cliente.objects.all()
+        if hasattr(user, "cliente"):
+            return Cliente.objects.filter(id=user.cliente.id)
+        return Cliente.objects.none()
 
 
 class MotoristaViewSet(viewsets.ModelViewSet):
