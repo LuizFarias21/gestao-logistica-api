@@ -205,4 +205,3 @@ class Entrega(models.Model):
 
     def __str__(self):
         return f"{self.codigo_rastreio} - {self.status}"
-
