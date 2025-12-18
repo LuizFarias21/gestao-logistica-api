@@ -135,5 +135,3 @@ class Entrega(models.Model):
     )
 
     codigo_rastreio = models.CharField(max_length=50)
-
-    
