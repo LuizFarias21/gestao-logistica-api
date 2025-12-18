@@ -24,7 +24,7 @@ urlpatterns = [
     path("docs/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
     
     path("motoristas/<int:pk>/entregas/", MotoristaViewSet.as_view({"get": "entregas"}), name="motorista-entregas"),
-   
+    path("motoristas/<int:pk>/atribuir-veiculo/", MotoristaViewSet.as_view({"patch": "atribuir_veiculo"}), name="motorista-atribuir-veiculo"),
     path("motoristas/<int:pk>/rotas/", MotoristaViewSet.as_view({"get": "rotas"}), name="motorista-rotas"),
     path("", include(router.urls)),
 ]
