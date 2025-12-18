@@ -1,7 +1,9 @@
-from rest_framework import viewsets
-from rest_framework.decorators import action
+from rest_framework import viewsets, status
 from rest_framework.response import Response
-from .models import Cliente, Motorista, Veiculo
+from rest_framework.decorators import action
+from django.shortcuts import get_object_or_404
+
+from .models import Cliente, Motorista, Veiculo, Rota, Entrega
 from .serializers import (
     ClienteSerializer,
     MotoristaSerializer,
@@ -42,7 +44,55 @@ class MotoristaViewSet(viewsets.ModelViewSet):
 
     queryset = Motorista.objects.all()
     serializer_class = MotoristaSerializer
-    permission_classes = [IsGestor]
+    permission_classes = [IsGestor | IsMotorista]
+
+    @action(
+        detail=True,
+        methods=["get"],
+        permission_classes=[IsMotorista],
+    )
+    def entregas(self, request, pk=None):
+        motorista = self.get_object()
+
+        entregas = Entrega.objects.filter(motorista=motorista)
+        serializer = EntregaSerializer(entregas, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=["get"], permission_classes=[IsMotorista])
+    def rotas(self, request, pk=None):
+        motorista = self.get_object()
+
+        rotas = Rota.objects.filter(motorista=motorista)
+        serializer = RotaSerializer(rotas, many=True)
+        return Response(serializer.data)
+
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="atribuir-veiculo",
+        permission_classes=[IsGestor],
+    )
+    def atribuir_veiculo(self, request, pk=None):
+        motorista = self.get_object()
+        veiculo = request.data.get("veiculo")
+
+        if not veiculo:
+            return Response(
+                {"erro": "O campo 'veiculo' é obrigatório."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        veiculo = get_object_or_404(Veiculo, id=veiculo)
+
+        veiculo.motorista = motorista
+        veiculo.save()
+
+        return Response(
+            {
+                "mensagem": f"Veículo {veiculo.placa} vinculado ao motorista {motorista.nome} com sucesso!"
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class VeiculoViewSet(viewsets.ModelViewSet):

@@ -12,7 +12,7 @@ class ClienteSerializer(serializers.ModelSerializer):
 class MotoristaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Motorista
-        fields = "__all__"
+        fields = ["nome", "cpf", "cnh", "telefone", "status"]
 
 
 class VeiculoSerializer(serializers.ModelSerializer):
@@ -24,7 +24,7 @@ class VeiculoSerializer(serializers.ModelSerializer):
 class EntregaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Entrega
-        # TODO: Escrever os fields
+        fields = "__all__"
 
 
 class RotaSerializer(serializers.ModelSerializer):

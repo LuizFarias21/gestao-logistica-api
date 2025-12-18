@@ -10,8 +10,8 @@ from .views import MotoristaViewSet, VeiculoViewSet, ClienteViewSet
 
 router = DefaultRouter()
 
-router.register(r"motoristas", MotoristaViewSet)
-router.register(r"veiculos", VeiculoViewSet)
+router.register(r"motoristas", MotoristaViewSet, basename="motorista")
+router.register(r"veiculos", VeiculoViewSet, basename="veiculo")
 router.register(r"clientes", ClienteViewSet, basename="cliente")
 # router.register(r"entregas", EntregaViewSet)
 # router.register(r"rotas", RotaViewSet)
