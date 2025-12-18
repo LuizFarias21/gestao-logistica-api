@@ -10,6 +10,7 @@ from .serializers import (
     RotaSerializer,
     EntregaSerializer,
     VeiculoSerializer,
+    EntregaClienteSerializer,
 )
 from .permissions import IsGestor, IsMotorista, IsCliente
 from drf_spectacular.utils import extend_schema
@@ -40,12 +41,21 @@ class ClienteViewSet(viewsets.ModelViewSet):
 class MotoristaViewSet(viewsets.ModelViewSet):
     """
     Gerenciamento de Motoristas (CRUD).
-    Apenas Gestores podem criar, editar ou ver a lista completa de motoristas.
+    - Listar/Criar/Deletar: Apenas Gestores.
+    - Detalhes (Retrieve): Gestores ou o próprio Motorista.
     """
-
     queryset = Motorista.objects.all()
     serializer_class = MotoristaSerializer
     permission_classes = [IsGestor | IsMotorista]
+
+    def get_permissions(self):
+        """
+        Define permissões específicas para cada ação.
+        """
+        if self.action in ["list", "create", "destroy"]:
+            return [IsGestor()]
+            
+        return super().get_permissions()
 
     @action(
         detail=True,
@@ -54,7 +64,6 @@ class MotoristaViewSet(viewsets.ModelViewSet):
     )
     def entregas(self, request, pk=None):
         motorista = self.get_object()
-
         entregas = Entrega.objects.filter(motorista=motorista)
         serializer = EntregaSerializer(entregas, many=True)
         return Response(serializer.data)
@@ -62,7 +71,6 @@ class MotoristaViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["get"], permission_classes=[IsMotorista])
     def rotas(self, request, pk=None):
         motorista = self.get_object()
-
         rotas = Rota.objects.filter(motorista=motorista)
         serializer = RotaSerializer(rotas, many=True)
         return Response(serializer.data)
@@ -75,16 +83,15 @@ class MotoristaViewSet(viewsets.ModelViewSet):
     )
     def atribuir_veiculo(self, request, pk=None):
         motorista = self.get_object()
-        veiculo = request.data.get("veiculo")
+        veiculo_id = request.data.get("veiculo")
 
-        if not veiculo:
+        if not veiculo_id:
             return Response(
                 {"erro": "O campo 'veiculo' é obrigatório."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        veiculo = get_object_or_404(Veiculo, id=veiculo)
-
+        veiculo = get_object_or_404(Veiculo, id=veiculo_id)
         veiculo.motorista = motorista
         veiculo.save()
 
@@ -146,132 +153,167 @@ class VeiculoViewSet(viewsets.ModelViewSet):
 class RotaViewSet(viewsets.ModelViewSet):
     """
     Gerenciamento de Rotas.
-    Gestores: Acesso total.
-    Motoristas: Visualizam apenas suas próprias rotas.
+    - Gestores: Acesso total (CRUD).
+    - Motoristas: Visualizam apenas suas próprias rotas.
     """
-
     serializer_class = RotaSerializer
     permission_classes = [IsGestor | IsMotorista]
 
     def get_queryset(self):
-        # TODO: Implementar lógica de filtragem.
-        # 1. Se for Gestor (user.is_staff) -> Retornar tudo.
-        # 2. Se for Motorista -> Retornar apenas Rota.objects.filter(motorista=user.motorista)
-        pass
+        user = self.request.user
+        
+        if user.is_staff:
+            return Rota.objects.all()
+        
+        if hasattr(user, "motorista"):
+            return Rota.objects.filter(motorista=user.motorista)
+            
+        return Rota.objects.none()
+
+    @extend_schema(
+        summary="Dashboard da Rota (Visão Completa)",
+        description="Retorna a composição completa: Dados da Rota, Motorista, Veículo e lista de Entregas.",
+    )
+    @action(detail=True, methods=["get"])
+    def dashboard(self, request, pk=None):
+        rota = self.get_object()
+        
+        entregas = rota.entregas.all()
+        
+        total_entregas = entregas.count()
+        entregas_concluidas = entregas.filter(status="entregue").count()
+        
+        data = {
+            "rota": {
+                "id": rota.id,
+                "nome": rota.nome,
+                "status": rota.status,
+                "data": rota.data_rota,
+            },
+            "motorista": {
+                "nome": rota.motorista.nome,
+                "telefone": rota.motorista.telefone,
+            },
+            "veiculo": {
+                "modelo": rota.veiculo.modelo,
+                "placa": rota.veiculo.placa,
+                "capacidade_maxima": rota.veiculo.capacidade_maxima,
+            },
+            "progresso": {
+                "total_entregas": total_entregas,
+                "concluidas": entregas_concluidas,
+                "pendentes": total_entregas - entregas_concluidas,
+            },
+            "entregas": [
+                {
+                    "codigo": e.codigo_rastreio,
+                    "endereco": e.endereco_destino,
+                    "status": e.status
+                } for e in entregas
+            ]
+        }
+        return Response(data)
 
 
 class EntregaViewSet(viewsets.ModelViewSet):
     """
     Gerenciamento de Entregas.
-    Gestores: Acesso total.
-    Motoristas: Atualizam status das entregas de suas rotas.
-    Clientes: Visualizam apenas suas próprias entregas (somente leitura).
+    - URL Principal: /api/entregas/{codigo_rastreio}/
+    - Rastreamento: /api/entregas/{codigo_rastreio}/rastreamento/
+    - Clientes: Veem apenas status e previsão (via Serializer Personalizado).
     """
-
     queryset = Entrega.objects.all()
     serializer_class = EntregaSerializer
     permission_classes = [IsGestor | IsMotorista | IsCliente]
+    
+    lookup_field = 'codigo_rastreio'
+
+    def get_serializer_class(self):
+        """
+        Define qual serializer usar baseado no perfil do usuário.
+        """
+
+        if hasattr(self.request.user, "cliente") and not self.request.user.is_staff:
+            return EntregaClienteSerializer
+        
+        return EntregaSerializer
 
     def get_queryset(self):
         user = self.request.user
-
         if user.is_staff:
             return Entrega.objects.all()
-
         if hasattr(user, "motorista"):
             return Entrega.objects.filter(motorista=user.motorista)
-
         if hasattr(user, "cliente"):
             return Entrega.objects.filter(cliente=user.cliente)
-
         return Entrega.objects.none()
 
     def perform_create(self, serializer):
         if not serializer.validated_data.get("endereco_origem"):
-            raise ValidationError(
-                {"endereco_origem": "O endereço de origem é obrigatório."}
-            )
-
+            raise ValidationError({"endereco_origem": "O endereço de origem é obrigatório."})
         if not serializer.validated_data.get("endereco_destino"):
-            raise ValidationError(
-                {"endereco_destino": "O endereço de destino é obrigatório."}
-            )
-
+            raise ValidationError({"endereco_destino": "O endereço de destino é obrigatório."})
         if not serializer.validated_data.get("cliente"):
             raise ValidationError({"cliente": "O cliente é obrigatório."})
-
         serializer.save()
 
     @extend_schema(
-        summary="Atribuir Motorista",
-        description="Vincula manualmente um motorista específico a esta entrega.",
+        summary="Atribuir Motorista (Gestor)",
+        description="Vincula manualmente um motorista a esta entrega.",
         request={"type": "object", "properties": {"motorista_id": {"type": "integer"}}},
         responses={200: EntregaSerializer},
     )
-    @action(detail=True, methods=["patch"])
-    def atribuir_motorista(self, request, pk=None):
+    @action(
+        detail=True, 
+        methods=["patch"], 
+        permission_classes=[IsGestor]
+    )
+    def atribuir_motorista(self, request, codigo_rastreio=None):
         entrega = self.get_object()
         motorista_id = request.data.get("motorista_id")
 
         if not motorista_id:
-            return Response(
-                {"erro": "O campo motorista_id é obrigatório."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return Response({"erro": "ID do motorista obrigatório."}, status=400)
 
-        try:
-            motorista = Motorista.objects.get(pk=motorista_id)
-        except Motorista.DoesNotExist:
-            return Response(
-                {"erro": "Motorista não encontrado."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
+        motorista = get_object_or_404(Motorista, pk=motorista_id)
         entrega.motorista = motorista
         entrega.save()
 
-        serializer = self.get_serializer(entrega)
-        return Response(serializer.data)
+        return Response(self.get_serializer(entrega).data)
 
     @extend_schema(
-        summary="Rastreamento da Entrega",
-        description="Retorna informações de rastreamento da entrega, incluindo status e previsão de entrega.",
+        summary="Marcar como Entregue (Motorista)",
+        description="Atualiza status para 'entregue' e data real.",
         responses={200: EntregaSerializer},
     )
-    @action(detail=True, methods=["get"])
-    def rastreamento(self, request, pk=None):
-        entrega = self.get_object()
-        serializer = self.get_serializer(entrega)
-
-        return Response(
-            {
-                "codigo_rastreio": entrega.codigo_rastreio,
-                "status": entrega.status,
-                "data_entrega_prevista": entrega.data_entrega_prevista,
-                "data_entrega_real": entrega.data_entrega_real,
-                "endereco_origem": entrega.endereco_origem,
-                "endereco_destino": entrega.endereco_destino,
-            }
-        )
-
-    @extend_schema(
-        summary="Marcar como Entregue",
-        description="Atualiza o status da entrega para 'entregue' e registra a data de entrega real.",
-        responses={200: EntregaSerializer},
+    @action(
+        detail=True, 
+        methods=["patch"], 
+        permission_classes=[IsGestor | IsMotorista]
     )
-    @action(detail=True, methods=["patch"])
-    def marcar_entregue(self, request, pk=None):
+    def marcar_entregue(self, request, codigo_rastreio=None):
         entrega = self.get_object()
+
+        if not request.user.is_staff:
+            if entrega.motorista != request.user.motorista:
+                return Response({"erro": "Você não é o motorista responsável por esta entrega."}, status=403)
 
         if entrega.status == "entregue":
-            return Response(
-                {"erro": "Esta entrega já foi marcada como entregue."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return Response({"erro": "Entrega já finalizada."}, status=400)
 
         entrega.status = "entregue"
         entrega.data_entrega_real = timezone.now()
         entrega.save()
 
+        return Response(self.get_serializer(entrega).data)
+
+    @extend_schema(
+        summary="Rastreamento da Entrega",
+        description="Retorna informações de rastreamento.",
+        responses={200: EntregaSerializer},
+    )
+    @action(detail=True, methods=["get"])
+    def rastreamento(self, request, codigo_rastreio=None):
+        entrega = self.get_object()
         serializer = self.get_serializer(entrega)
         return Response(serializer.data)

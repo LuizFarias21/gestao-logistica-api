@@ -116,13 +116,27 @@ class Veiculo(models.Model):
 
 
 class Rota(models.Model):
+    STATUS_ROTA = (
+        ("planejada", "Planejada"),
+        ("em_andamento", "Em Andamento"),
+        ("concluida", "Concluída"),
+    )
+
     motorista = models.ForeignKey(
         Motorista, on_delete=models.PROTECT, related_name="rotas"
     )
-
     veiculo = models.ForeignKey(Veiculo, on_delete=models.PROTECT, related_name="rotas")
 
     nome = models.CharField(max_length=100)
+    descricao = models.TextField(null=True, blank=True)
+    data_rota = models.DateTimeField(auto_now_add=True)
+    
+    status = models.CharField(
+        max_length=20, choices=STATUS_ROTA, default="planejada"
+    )
+
+    def __str__(self):
+        return f"{self.nome} - {self.motorista.nome}"
 
 
 class Entrega(models.Model):

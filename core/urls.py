@@ -6,7 +6,7 @@ from drf_spectacular.views import (
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
-from .views import MotoristaViewSet, VeiculoViewSet, ClienteViewSet, EntregaViewSet
+from .views import MotoristaViewSet, VeiculoViewSet, ClienteViewSet, EntregaViewSet, RotaViewSet
 
 router = DefaultRouter()
 
@@ -14,8 +14,7 @@ router.register(r"motoristas", MotoristaViewSet, basename="motorista")
 router.register(r"veiculos", VeiculoViewSet, basename="veiculo")
 router.register(r"clientes", ClienteViewSet, basename="cliente")
 router.register(r"entregas", EntregaViewSet, basename="entrega")
-# router.register(r"rotas", RotaViewSet)
-
+router.register(r"rotas", RotaViewSet, basename="rota")
 urlpatterns = [
     path("auth/token/", obtain_auth_token, name="api_token_auth"),
     path("schema/", SpectacularAPIView.as_view(), name="schema"),
