@@ -5,7 +5,8 @@ from .models import Cliente, Motorista, Rota, Entrega, Veiculo
 class ClienteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Cliente
-        # TODO: Escrever os fields
+        fields = ["endereco", "telefone"]
+        read_only_fields = ["nome", "user"]
 
 
 class MotoristaSerializer(serializers.ModelSerializer):
