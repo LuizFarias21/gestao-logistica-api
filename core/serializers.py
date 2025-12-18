@@ -1,3 +1,6 @@
+from decimal import Decimal
+
+from django.db.models import Sum
 from rest_framework import serializers
 from .models import Cliente, Motorista, Rota, Entrega, Veiculo
 
@@ -27,6 +30,51 @@ class EntregaSerializer(serializers.ModelSerializer):
         fields = "__all__"
         read_only_fields = ["data_solicitacao"]
 
+    def validate(self, attrs):
+        """Impede associar/alterar entregas em rotas que excedam a capacidade do veículo."""
+
+        instance = getattr(self, "instance", None)
+
+        rota = attrs.get("rota")
+        if rota is None and instance is not None:
+            rota = instance.rota
+
+        capacidade_necessaria = attrs.get("capacidade_necessaria")
+        if capacidade_necessaria is None and instance is not None:
+            capacidade_necessaria = instance.capacidade_necessaria
+
+        if rota is None or capacidade_necessaria is None:
+            return attrs
+
+        qs = Entrega.objects.filter(rota=rota)
+        if instance is not None and instance.pk:
+            qs = qs.exclude(pk=instance.pk)
+
+        capacidade_atual = qs.aggregate(total=Sum("capacidade_necessaria")).get("total") or Decimal("0")
+        capacidade_maxima = rota.veiculo.capacidade_maxima
+
+        if capacidade_atual + capacidade_necessaria > capacidade_maxima:
+            raise serializers.ValidationError(
+                {
+                    "rota": (
+                        "Capacidade do veículo excedida para esta rota. "
+                        f"Capacidade máxima: {capacidade_maxima}. "
+                        f"Capacidade já utilizada: {capacidade_atual}. "
+                        f"Capacidade desta entrega: {capacidade_necessaria}."
+                    )
+                }
+            )
+
+        return attrs
+
+
+class EntregaMotoristaUpdateSerializer(serializers.ModelSerializer):
+    """Serializer restrito para motorista: permite alterar apenas status/observações."""
+
+    class Meta:
+        model = Entrega
+        fields = ["status", "observacoes"]
+
 
 class RotaSerializer(serializers.ModelSerializer):
     class Meta:
@@ -50,6 +98,14 @@ class AtribuirVeiculoRequestSerializer(serializers.Serializer):
 
 class AtribuirMotoristaRequestSerializer(serializers.Serializer):
     motorista_id = serializers.IntegerField(help_text="ID do motorista a ser vinculado")
+
+
+class AtribuirEntregasRotaRequestSerializer(serializers.Serializer):
+    entregas = serializers.ListField(
+        child=serializers.CharField(),
+        help_text="Lista de códigos de rastreio (codigo_rastreio) das entregas a serem atribuídas à rota",
+        allow_empty=False,
+    )
 
 
 class MensagemResponseSerializer(serializers.Serializer):

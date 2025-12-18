@@ -18,6 +18,9 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
+from django.db import transaction
+from django.db.models import Sum
+from decimal import Decimal
 
 from .models import Cliente, Motorista, Veiculo, Rota, Entrega
 from .serializers import (
@@ -27,6 +30,8 @@ from .serializers import (
     EntregaSerializer,
     VeiculoSerializer,
     EntregaClienteSerializer,
+    EntregaMotoristaUpdateSerializer,
+    AtribuirEntregasRotaRequestSerializer,
 )
 from .permissions import IsGestor, IsMotorista, IsCliente
 from drf_spectacular.utils import extend_schema
@@ -194,6 +199,11 @@ class RotaViewSet(viewsets.ModelViewSet):
         entregas = rota.entregas.all()
         ...
         return Response(data)
+
+    @action(detail=True, methods=["post"], url_path="atribuir-entregas", permission_classes=[IsGestor])
+    def atribuir_entregas(self, request, pk=None):
+        """Vincula entregas à rota validando capacidade do veículo."""
+        ...
 ```
 
 ### Explicação
@@ -209,6 +219,12 @@ class RotaViewSet(viewsets.ModelViewSet):
     - veículo
     - progresso (total/concluídas/pendentes)
     - lista resumida de entregas (código/endereço/status)
+
+- `atribuir_entregas`:
+    - Endpoint: `POST /api/rotas/{id}/atribuir-entregas/`.
+    - Corpo esperado: `{ "entregas": ["CODIGO1", "CODIGO2"] }`.
+    - Valida a regra do enunciado: Soma(`capacidade_necessaria`) ≤ `capacidade_maxima` do veículo.
+    - Vincula também `entrega.motorista = rota.motorista`.
 
 ---
 
@@ -227,6 +243,9 @@ class EntregaViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if hasattr(self.request.user, "cliente") and not self.request.user.is_staff:
             return EntregaClienteSerializer
+        if hasattr(self.request.user, "motorista") and not self.request.user.is_staff:
+            if self.action in ["update", "partial_update"]:
+                return EntregaMotoristaUpdateSerializer
         return EntregaSerializer
 
     def get_queryset(self):
@@ -247,6 +266,8 @@ class EntregaViewSet(viewsets.ModelViewSet):
   - Ex.: `GET /api/entregas/{codigo_rastreio}/`.
 - `get_serializer_class()`:
   - Cliente (não staff) recebe `EntregaClienteSerializer` (visão reduzida).
+    - Motorista (não staff) no `PUT/PATCH` recebe `EntregaMotoristaUpdateSerializer`:
+        - Permite alterar apenas `status` e `observacoes`.
   - Outros perfis recebem `EntregaSerializer` (completo).
 - `get_queryset()`:
   - Gestor vê tudo.

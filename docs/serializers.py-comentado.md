@@ -99,6 +99,12 @@ class EntregaSerializer(serializers.ModelSerializer):
   - Faz sentido porque no model ela é `auto_now_add=True`.
   - Ajuda a evitar tentativas de “forçar” a data via API.
 
+### Regra de negócio (enunciado): capacidade da rota
+
+- Quando uma entrega é associada a uma `rota`, o serializer valida:
+  - Soma(`capacidade_necessaria` das entregas da rota) ≤ `capacidade_maxima` do veículo da rota.
+- Se exceder, a API retorna 400 com erro no campo `rota`.
+
 ---
 
 ## Serializer: `RotaSerializer`
@@ -143,3 +149,40 @@ class EntregaClienteSerializer(serializers.ModelSerializer):
   - `status`: estado atual
   - `data_entrega_prevista`: previsão
 - Esse serializer é selecionado dinamicamente no `EntregaViewSet.get_serializer_class()` (ver documentação de `views.py`).
+
+---
+
+## Serializer: `EntregaMotoristaUpdateSerializer` (edição restrita)
+
+### Trecho do serializer
+
+```py
+class EntregaMotoristaUpdateSerializer(serializers.ModelSerializer):
+  class Meta:
+    model = Entrega
+    fields = ["status", "observacoes"]
+```
+
+### Explicação
+
+- Usado quando o usuário autenticado é **motorista** e faz `PUT/PATCH` em entrega.
+- Garante que o motorista só altere `status` e `observacoes`.
+
+---
+
+## Serializer: `AtribuirEntregasRotaRequestSerializer`
+
+### Trecho do serializer
+
+```py
+class AtribuirEntregasRotaRequestSerializer(serializers.Serializer):
+  entregas = serializers.ListField(
+    child=serializers.CharField(),
+    allow_empty=False,
+  )
+```
+
+### Explicação
+
+- Usado no endpoint `POST /api/rotas/{id}/atribuir-entregas/`.
+- Recebe uma lista de `codigo_rastreio` para vincular entregas a uma rota.

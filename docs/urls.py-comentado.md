@@ -111,3 +111,7 @@ urlpatterns = [
 - `/api/rotas/`
   - Ações extras em `RotaViewSet`:
     - `GET /api/rotas/{id}/dashboard/`
+
+    - `POST /api/rotas/{id}/atribuir-entregas/`
+      - Atribui uma ou mais entregas à rota com validação de capacidade do veículo.
+      - Body: `{ "entregas": ["CODIGO1", "CODIGO2"] }`
