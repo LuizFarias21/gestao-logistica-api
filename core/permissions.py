@@ -48,8 +48,7 @@ class IsMotorista(permissions.BasePermission):
 class IsCliente(permissions.BasePermission):
     """
     Permissão personalizada para Clientes.
-    - Acesso somente leitura (GET, HEAD, OPTIONS).
-    - Acesso restrito apenas aos seus próprios dados.
+    - Pode Ler (GET) e Editar (PUT/PATCH) (apenas seus próprios dados).
     """
 
     def has_permission(self, request, view):
@@ -59,7 +58,7 @@ class IsCliente(permissions.BasePermission):
         if request.user.is_staff:
             return True
 
-        if request.method not in permissions.SAFE_METHODS:
+        if view.action in ["create", "destroy", "list"]:
             return False
 
         if not hasattr(request.user, "cliente"):
@@ -69,6 +68,9 @@ class IsCliente(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         if request.user.is_staff:
+            return True
+
+        if hasattr(request.user, "cliente") and obj == request.user.cliente:
             return True
 
         if hasattr(obj, "cliente"):

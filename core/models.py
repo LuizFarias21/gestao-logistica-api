@@ -3,8 +3,16 @@ from django.contrib.auth.models import User
 
 
 class Cliente(models.Model):
-    # TODO: Implementar model Cliente (Não se esquecer de associar com User)
-    pass
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="cliente")
+
+    nome = models.CharField(max_length=120, help_text="Nome completo ou Razão Social")
+
+    endereco = models.CharField(max_length=255, help_text="Endereço principal")
+
+    telefone = models.CharField(max_length=20, help_text="Telefone para contato")
+
+    def __str__(self):
+        return f"{self.nome} ({self.user.username})"
 
 
 class Motorista(models.Model):
@@ -15,7 +23,10 @@ class Motorista(models.Model):
     )
 
     user = models.OneToOneField(
-        User, on_delete=models.CASCADE, related_name="motorista"
+        User,
+        on_delete=models.CASCADE,
+        related_name="motorista",
+        help_text="Usuário de login associado a este perfil de cliente",
     )
 
     nome = models.CharField(max_length=100, help_text="Nome do motorista")
