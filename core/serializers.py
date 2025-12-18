@@ -42,3 +42,29 @@ class EntregaClienteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Entrega
         fields = ["codigo_rastreio", "status", "data_entrega_prevista"]
+
+
+class AtribuirVeiculoRequestSerializer(serializers.Serializer):
+    veiculo = serializers.IntegerField(help_text="ID do veículo a ser vinculado")
+
+
+class AtribuirMotoristaRequestSerializer(serializers.Serializer):
+    motorista_id = serializers.IntegerField(help_text="ID do motorista a ser vinculado")
+
+
+class MensagemResponseSerializer(serializers.Serializer):
+    mensagem = serializers.CharField()
+
+
+class RotaDashboardEntregaItemSerializer(serializers.Serializer):
+    codigo = serializers.CharField(help_text="Código de rastreio")
+    endereco = serializers.CharField(help_text="Endereço de destino")
+    status = serializers.CharField(help_text="Status atual")
+
+
+class RotaDashboardResponseSerializer(serializers.Serializer):
+    rota = serializers.DictField(help_text="Dados básicos da rota")
+    motorista = serializers.DictField(help_text="Dados do motorista")
+    veiculo = serializers.DictField(help_text="Dados do veículo")
+    progresso = serializers.DictField(help_text="Indicadores de progresso")
+    entregas = RotaDashboardEntregaItemSerializer(many=True)

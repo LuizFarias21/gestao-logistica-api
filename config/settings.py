@@ -57,9 +57,22 @@ REST_FRAMEWORK = {
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "API de Gestão Logística",
-    "DESCRIPTION": "Documentação da API de Gestão Logística",
+    "DESCRIPTION": (
+        "API REST para centralizar a gestão de entregas, motoristas, veículos e rotas.\n\n"
+        "### Autenticação\n"
+        "- Token: `POST /api/auth/token/`\n"
+        "- Envie o header: `Authorization: Token <seu_token>`\n\n"
+        "### Documentação\n"
+        "- Swagger: `/api/docs/`\n"
+        "- Redoc: `/api/docs/redoc/`\n"
+    ),
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
+    "COMPONENT_SPLIT_REQUEST": True,
+    "SWAGGER_UI_SETTINGS": {
+        "persistAuthorization": True,
+        "displayRequestDuration": True,
+    },
 }
 
 MIDDLEWARE = [

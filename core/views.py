@@ -11,6 +11,10 @@ from .serializers import (
     EntregaSerializer,
     VeiculoSerializer,
     EntregaClienteSerializer,
+    AtribuirVeiculoRequestSerializer,
+    AtribuirMotoristaRequestSerializer,
+    MensagemResponseSerializer,
+    RotaDashboardResponseSerializer,
 )
 from .permissions import IsGestor, IsMotorista, IsCliente
 from drf_spectacular.utils import extend_schema
@@ -57,6 +61,11 @@ class MotoristaViewSet(viewsets.ModelViewSet):
             
         return super().get_permissions()
 
+    @extend_schema(
+        summary="Listar Entregas do Motorista",
+        description="Retorna todas as entregas vinculadas ao motorista informado.",
+        responses={200: EntregaSerializer(many=True)},
+    )
     @action(
         detail=True,
         methods=["get"],
@@ -68,6 +77,11 @@ class MotoristaViewSet(viewsets.ModelViewSet):
         serializer = EntregaSerializer(entregas, many=True)
         return Response(serializer.data)
 
+    @extend_schema(
+        summary="Listar Rotas do Motorista",
+        description="Retorna todas as rotas vinculadas ao motorista informado.",
+        responses={200: RotaSerializer(many=True)},
+    )
     @action(detail=True, methods=["get"], permission_classes=[IsMotorista])
     def rotas(self, request, pk=None):
         motorista = self.get_object()
@@ -75,6 +89,12 @@ class MotoristaViewSet(viewsets.ModelViewSet):
         serializer = RotaSerializer(rotas, many=True)
         return Response(serializer.data)
 
+    @extend_schema(
+        summary="Atribuir Veículo ao Motorista (Gestor)",
+        description="Vincula um veículo existente a um motorista.",
+        request=AtribuirVeiculoRequestSerializer,
+        responses={200: MensagemResponseSerializer},
+    )
     @action(
         detail=True,
         methods=["post"],
@@ -173,6 +193,7 @@ class RotaViewSet(viewsets.ModelViewSet):
     @extend_schema(
         summary="Dashboard da Rota (Visão Completa)",
         description="Retorna a composição completa: Dados da Rota, Motorista, Veículo e lista de Entregas.",
+        responses={200: RotaDashboardResponseSerializer},
     )
     @action(detail=True, methods=["get"])
     def dashboard(self, request, pk=None):
@@ -260,7 +281,7 @@ class EntregaViewSet(viewsets.ModelViewSet):
     @extend_schema(
         summary="Atribuir Motorista (Gestor)",
         description="Vincula manualmente um motorista a esta entrega.",
-        request={"type": "object", "properties": {"motorista_id": {"type": "integer"}}},
+        request=AtribuirMotoristaRequestSerializer,
         responses={200: EntregaSerializer},
     )
     @action(
@@ -284,6 +305,7 @@ class EntregaViewSet(viewsets.ModelViewSet):
     @extend_schema(
         summary="Marcar como Entregue (Motorista)",
         description="Atualiza status para 'entregue' e data real.",
+        request=None,
         responses={200: EntregaSerializer},
     )
     @action(
