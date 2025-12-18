@@ -124,6 +124,7 @@ class Rota(models.Model):
 
     nome = models.CharField(max_length=100)
 
+
 class Entrega(models.Model):
     STATUS_CHOICES = (
         ("pendente", "Pendente"),
@@ -137,16 +138,14 @@ class Entrega(models.Model):
     )
 
     cliente = models.ForeignKey(
-        'Cliente',
+        Cliente,
         on_delete=models.PROTECT,
         related_name="entregas",
-        null=True,
-        blank=True,
         help_text="Cliente solicitante da entrega",
     )
 
     rota = models.ForeignKey(
-        'Rota',
+        Rota,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -155,7 +154,7 @@ class Entrega(models.Model):
     )
 
     motorista = models.ForeignKey(
-        'Motorista',
+        Motorista,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -164,11 +163,11 @@ class Entrega(models.Model):
     )
 
     endereco_origem = models.CharField(
-        max_length=255, default="", help_text="Endereço de origem da entrega"
+        max_length=255, help_text="Endereço de origem da entrega"
     )
 
     endereco_destino = models.CharField(
-        max_length=255, default="", help_text="Endereço de destino da entrega"
+        max_length=255, help_text="Endereço de destino da entrega"
     )
 
     status = models.CharField(
@@ -181,12 +180,11 @@ class Entrega(models.Model):
     capacidade_necessaria = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        default=0.00,
         help_text="Peso ou volume necessário em KG para o transporte",
     )
 
     valor_frete = models.DecimalField(
-        max_digits=10, decimal_places=2, default=0.00, help_text="Valor do frete em reais"
+        max_digits=10, decimal_places=2, help_text="Valor do frete em reais"
     )
 
     data_solicitacao = models.DateTimeField(
@@ -207,3 +205,4 @@ class Entrega(models.Model):
 
     def __str__(self):
         return f"{self.codigo_rastreio} - {self.status}"
+
