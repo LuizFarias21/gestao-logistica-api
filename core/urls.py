@@ -6,7 +6,13 @@ from drf_spectacular.views import (
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
-from .views import MotoristaViewSet, VeiculoViewSet, ClienteViewSet, EntregaViewSet, RotaViewSet
+from .views import (
+    MotoristaViewSet,
+    VeiculoViewSet,
+    ClienteViewSet,
+    EntregaViewSet,
+    RotaViewSet,
+)
 
 router = DefaultRouter()
 

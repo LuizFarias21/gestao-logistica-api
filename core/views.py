@@ -53,6 +53,7 @@ class MotoristaViewSet(viewsets.ModelViewSet):
     - Listar/Criar/Deletar: Apenas Gestores.
     - Detalhes (Retrieve): Gestores ou o próprio Motorista.
     """
+
     queryset = Motorista.objects.all()
     serializer_class = MotoristaSerializer
     permission_classes = [IsGestor | IsMotorista]
@@ -63,7 +64,7 @@ class MotoristaViewSet(viewsets.ModelViewSet):
         """
         if self.action in ["list", "create", "destroy"]:
             return [IsGestor()]
-            
+
         return super().get_permissions()
 
     @extend_schema(
@@ -181,18 +182,19 @@ class RotaViewSet(viewsets.ModelViewSet):
     - Gestores: Acesso total (CRUD).
     - Motoristas: Visualizam apenas suas próprias rotas.
     """
+
     serializer_class = RotaSerializer
     permission_classes = [IsGestor | IsMotorista]
 
     def get_queryset(self):
         user = self.request.user
-        
+
         if user.is_staff:
             return Rota.objects.all()
-        
+
         if hasattr(user, "motorista"):
             return Rota.objects.filter(motorista=user.motorista)
-            
+
         return Rota.objects.none()
 
     @extend_schema(
@@ -203,12 +205,12 @@ class RotaViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=["get"])
     def dashboard(self, request, pk=None):
         rota = self.get_object()
-        
+
         entregas = rota.entregas.all()
-        
+
         total_entregas = entregas.count()
         entregas_concluidas = entregas.filter(status="entregue").count()
-        
+
         data = {
             "rota": {
                 "id": rota.id,
@@ -234,9 +236,10 @@ class RotaViewSet(viewsets.ModelViewSet):
                 {
                     "codigo": e.codigo_rastreio,
                     "endereco": e.endereco_destino,
-                    "status": e.status
-                } for e in entregas
-            ]
+                    "status": e.status,
+                }
+                for e in entregas
+            ],
         }
         return Response(data)
 
@@ -264,12 +267,9 @@ class RotaViewSet(viewsets.ModelViewSet):
         codigos = serializer.validated_data["entregas"]
 
         capacidade_maxima = rota.veiculo.capacidade_maxima
-        capacidade_atual = (
-            Entrega.objects.filter(rota=rota)
-            .aggregate(total=Sum("capacidade_necessaria"))
-            .get("total")
-            or Decimal("0")
-        )
+        capacidade_atual = Entrega.objects.filter(rota=rota).aggregate(
+            total=Sum("capacidade_necessaria")
+        ).get("total") or Decimal("0")
 
         with transaction.atomic():
             for codigo in codigos:
@@ -320,11 +320,12 @@ class EntregaViewSet(viewsets.ModelViewSet):
     - Rastreamento: /api/entregas/{codigo_rastreio}/rastreamento/
     - Clientes: Veem apenas status e previsão (via Serializer Personalizado).
     """
+
     queryset = Entrega.objects.all()
     serializer_class = EntregaSerializer
     permission_classes = [IsGestor | IsMotorista | IsCliente]
-    
-    lookup_field = 'codigo_rastreio'
+
+    lookup_field = "codigo_rastreio"
 
     def get_serializer_class(self):
         """
@@ -339,7 +340,7 @@ class EntregaViewSet(viewsets.ModelViewSet):
                 return EntregaMotoristaUpdateSerializer
             if self.action in ["marcar_entregue"]:
                 return EntregaSerializer
-        
+
         return EntregaSerializer
 
     def get_queryset(self):
@@ -354,9 +355,13 @@ class EntregaViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         if not serializer.validated_data.get("endereco_origem"):
-            raise ValidationError({"endereco_origem": "O endereço de origem é obrigatório."})
+            raise ValidationError(
+                {"endereco_origem": "O endereço de origem é obrigatório."}
+            )
         if not serializer.validated_data.get("endereco_destino"):
-            raise ValidationError({"endereco_destino": "O endereço de destino é obrigatório."})
+            raise ValidationError(
+                {"endereco_destino": "O endereço de destino é obrigatório."}
+            )
         if not serializer.validated_data.get("cliente"):
             raise ValidationError({"cliente": "O cliente é obrigatório."})
         serializer.save()
@@ -367,11 +372,7 @@ class EntregaViewSet(viewsets.ModelViewSet):
         request=AtribuirMotoristaRequestSerializer,
         responses={200: EntregaSerializer},
     )
-    @action(
-        detail=True, 
-        methods=["patch"], 
-        permission_classes=[IsGestor]
-    )
+    @action(detail=True, methods=["patch"], permission_classes=[IsGestor])
     def atribuir_motorista(self, request, codigo_rastreio=None):
         entrega = self.get_object()
         motorista_id = request.data.get("motorista_id")
@@ -391,17 +392,16 @@ class EntregaViewSet(viewsets.ModelViewSet):
         request=None,
         responses={200: EntregaSerializer},
     )
-    @action(
-        detail=True, 
-        methods=["patch"], 
-        permission_classes=[IsGestor | IsMotorista]
-    )
+    @action(detail=True, methods=["patch"], permission_classes=[IsGestor | IsMotorista])
     def marcar_entregue(self, request, codigo_rastreio=None):
         entrega = self.get_object()
 
         if not request.user.is_staff:
             if entrega.motorista != request.user.motorista:
-                return Response({"erro": "Você não é o motorista responsável por esta entrega."}, status=403)
+                return Response(
+                    {"erro": "Você não é o motorista responsável por esta entrega."},
+                    status=403,
+                )
 
         if entrega.status == "entregue":
             return Response({"erro": "Entrega já finalizada."}, status=400)

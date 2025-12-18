@@ -130,10 +130,8 @@ class Rota(models.Model):
     nome = models.CharField(max_length=100)
     descricao = models.TextField(null=True, blank=True)
     data_rota = models.DateTimeField(auto_now_add=True)
-    
-    status = models.CharField(
-        max_length=20, choices=STATUS_ROTA, default="planejada"
-    )
+
+    status = models.CharField(max_length=20, choices=STATUS_ROTA, default="planejada")
 
     def __str__(self):
         return f"{self.nome} - {self.motorista.nome}"

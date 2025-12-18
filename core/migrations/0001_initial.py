@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -15,74 +14,357 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Cliente',
+            name="Cliente",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nome', models.CharField(help_text='Nome completo ou Razão Social', max_length=120)),
-                ('endereco', models.CharField(help_text='Endereço principal', max_length=255)),
-                ('telefone', models.CharField(help_text='Telefone para contato', max_length=20)),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='cliente', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "nome",
+                    models.CharField(
+                        help_text="Nome completo ou Razão Social", max_length=120
+                    ),
+                ),
+                (
+                    "endereco",
+                    models.CharField(help_text="Endereço principal", max_length=255),
+                ),
+                (
+                    "telefone",
+                    models.CharField(help_text="Telefone para contato", max_length=20),
+                ),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="cliente",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Motorista',
+            name="Motorista",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nome', models.CharField(help_text='Nome do motorista', max_length=100)),
-                ('cpf', models.CharField(help_text='CPF sem ponto ou traço', max_length=11, unique=True)),
-                ('cnh', models.CharField(help_text='CNH sem ponto ou traço', max_length=11, unique=True)),
-                ('telefone', models.CharField(help_text='Telefone Ex: (61) 91234-5678', max_length=20)),
-                ('status', models.CharField(choices=[('disponivel', 'Disponível'), ('em_rota', 'Em Rota'), ('inativo', 'Inativo')], default='disponivel', help_text='Status do motorista', max_length=10)),
-                ('data_cadastro', models.DateTimeField(auto_now_add=True, help_text='Data e hora do cadastro do motorista')),
-                ('user', models.OneToOneField(help_text='Usuário de login associado a este perfil de cliente', on_delete=django.db.models.deletion.CASCADE, related_name='motorista', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "nome",
+                    models.CharField(help_text="Nome do motorista", max_length=100),
+                ),
+                (
+                    "cpf",
+                    models.CharField(
+                        help_text="CPF sem ponto ou traço", max_length=11, unique=True
+                    ),
+                ),
+                (
+                    "cnh",
+                    models.CharField(
+                        help_text="CNH sem ponto ou traço", max_length=11, unique=True
+                    ),
+                ),
+                (
+                    "telefone",
+                    models.CharField(
+                        help_text="Telefone Ex: (61) 91234-5678", max_length=20
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("disponivel", "Disponível"),
+                            ("em_rota", "Em Rota"),
+                            ("inativo", "Inativo"),
+                        ],
+                        default="disponivel",
+                        help_text="Status do motorista",
+                        max_length=10,
+                    ),
+                ),
+                (
+                    "data_cadastro",
+                    models.DateTimeField(
+                        auto_now_add=True,
+                        help_text="Data e hora do cadastro do motorista",
+                    ),
+                ),
+                (
+                    "user",
+                    models.OneToOneField(
+                        help_text="Usuário de login associado a este perfil de cliente",
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="motorista",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Rota',
+            name="Rota",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('nome', models.CharField(max_length=100)),
-                ('descricao', models.TextField(blank=True, null=True)),
-                ('data_rota', models.DateTimeField(auto_now_add=True)),
-                ('status', models.CharField(choices=[('planejada', 'Planejada'), ('em_andamento', 'Em Andamento'), ('concluida', 'Concluída')], default='planejada', max_length=20)),
-                ('motorista', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='rotas', to='core.motorista')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("nome", models.CharField(max_length=100)),
+                ("descricao", models.TextField(blank=True, null=True)),
+                ("data_rota", models.DateTimeField(auto_now_add=True)),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("planejada", "Planejada"),
+                            ("em_andamento", "Em Andamento"),
+                            ("concluida", "Concluída"),
+                        ],
+                        default="planejada",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "motorista",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="rotas",
+                        to="core.motorista",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Entrega',
+            name="Entrega",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('codigo_rastreio', models.CharField(help_text='Código único de rastreamento da entrega', max_length=50, unique=True)),
-                ('endereco_origem', models.CharField(help_text='Endereço de origem da entrega', max_length=255)),
-                ('endereco_destino', models.CharField(help_text='Endereço de destino da entrega', max_length=255)),
-                ('status', models.CharField(choices=[('pendente', 'Pendente'), ('em_transito', 'Em Trânsito'), ('entregue', 'Entregue'), ('cancelada', 'Cancelada')], default='pendente', help_text='Status atual da entrega', max_length=20)),
-                ('capacidade_necessaria', models.DecimalField(decimal_places=2, help_text='Peso ou volume necessário em KG para o transporte', max_digits=10)),
-                ('valor_frete', models.DecimalField(decimal_places=2, help_text='Valor do frete em reais', max_digits=10)),
-                ('data_solicitacao', models.DateTimeField(auto_now_add=True, help_text='Data e hora da solicitação da entrega', null=True)),
-                ('data_entrega_prevista', models.DateTimeField(blank=True, help_text='Data e hora prevista para a entrega', null=True)),
-                ('data_entrega_real', models.DateTimeField(blank=True, help_text='Data e hora real da entrega concluída', null=True)),
-                ('observacoes', models.TextField(blank=True, help_text='Observações adicionais sobre a entrega')),
-                ('cliente', models.ForeignKey(help_text='Cliente solicitante da entrega', on_delete=django.db.models.deletion.PROTECT, related_name='entregas', to='core.cliente')),
-                ('motorista', models.ForeignKey(blank=True, help_text='Motorista responsável pela entrega', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='entregas', to='core.motorista')),
-                ('rota', models.ForeignKey(blank=True, help_text='Rota associada à entrega', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='entregas', to='core.rota')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "codigo_rastreio",
+                    models.CharField(
+                        help_text="Código único de rastreamento da entrega",
+                        max_length=50,
+                        unique=True,
+                    ),
+                ),
+                (
+                    "endereco_origem",
+                    models.CharField(
+                        help_text="Endereço de origem da entrega", max_length=255
+                    ),
+                ),
+                (
+                    "endereco_destino",
+                    models.CharField(
+                        help_text="Endereço de destino da entrega", max_length=255
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("pendente", "Pendente"),
+                            ("em_transito", "Em Trânsito"),
+                            ("entregue", "Entregue"),
+                            ("cancelada", "Cancelada"),
+                        ],
+                        default="pendente",
+                        help_text="Status atual da entrega",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "capacidade_necessaria",
+                    models.DecimalField(
+                        decimal_places=2,
+                        help_text="Peso ou volume necessário em KG para o transporte",
+                        max_digits=10,
+                    ),
+                ),
+                (
+                    "valor_frete",
+                    models.DecimalField(
+                        decimal_places=2,
+                        help_text="Valor do frete em reais",
+                        max_digits=10,
+                    ),
+                ),
+                (
+                    "data_solicitacao",
+                    models.DateTimeField(
+                        auto_now_add=True,
+                        help_text="Data e hora da solicitação da entrega",
+                        null=True,
+                    ),
+                ),
+                (
+                    "data_entrega_prevista",
+                    models.DateTimeField(
+                        blank=True,
+                        help_text="Data e hora prevista para a entrega",
+                        null=True,
+                    ),
+                ),
+                (
+                    "data_entrega_real",
+                    models.DateTimeField(
+                        blank=True,
+                        help_text="Data e hora real da entrega concluída",
+                        null=True,
+                    ),
+                ),
+                (
+                    "observacoes",
+                    models.TextField(
+                        blank=True, help_text="Observações adicionais sobre a entrega"
+                    ),
+                ),
+                (
+                    "cliente",
+                    models.ForeignKey(
+                        help_text="Cliente solicitante da entrega",
+                        on_delete=django.db.models.deletion.PROTECT,
+                        related_name="entregas",
+                        to="core.cliente",
+                    ),
+                ),
+                (
+                    "motorista",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Motorista responsável pela entrega",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="entregas",
+                        to="core.motorista",
+                    ),
+                ),
+                (
+                    "rota",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Rota associada à entrega",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="entregas",
+                        to="core.rota",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Veiculo',
+            name="Veiculo",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('placa', models.CharField(help_text='Placa sem traços (EX: ABC1234)', max_length=7, unique=True)),
-                ('modelo', models.CharField(help_text='Modelo e Marca (Ex: Fiat Ducato)', max_length=70)),
-                ('tipo', models.CharField(choices=[('CARRO', 'Carro'), ('VAN', 'Van'), ('CAMINHAO', 'Caminhão')], default='CARRO', help_text='Tipo de veículo', max_length=20)),
-                ('capacidade_maxima', models.DecimalField(decimal_places=2, help_text='Capacidade em KG (EX: 320.00)', max_digits=10)),
-                ('km_atual', models.DecimalField(decimal_places=2, default=0, help_text='Leitura atual do hodômetro em KM', max_digits=10)),
-                ('status', models.CharField(choices=[('DISPONIVEL', 'Disponível'), ('EM_USO', 'Em uso'), ('MANUTENCAO', 'Manutenção')], default='DISPONIVEL', help_text='Status atual do veículo', max_length=20)),
-                ('motorista', models.OneToOneField(blank=True, help_text='Motorista responsável pelo veículo no momento', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='veiculo', to='core.motorista')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "placa",
+                    models.CharField(
+                        help_text="Placa sem traços (EX: ABC1234)",
+                        max_length=7,
+                        unique=True,
+                    ),
+                ),
+                (
+                    "modelo",
+                    models.CharField(
+                        help_text="Modelo e Marca (Ex: Fiat Ducato)", max_length=70
+                    ),
+                ),
+                (
+                    "tipo",
+                    models.CharField(
+                        choices=[
+                            ("CARRO", "Carro"),
+                            ("VAN", "Van"),
+                            ("CAMINHAO", "Caminhão"),
+                        ],
+                        default="CARRO",
+                        help_text="Tipo de veículo",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "capacidade_maxima",
+                    models.DecimalField(
+                        decimal_places=2,
+                        help_text="Capacidade em KG (EX: 320.00)",
+                        max_digits=10,
+                    ),
+                ),
+                (
+                    "km_atual",
+                    models.DecimalField(
+                        decimal_places=2,
+                        default=0,
+                        help_text="Leitura atual do hodômetro em KM",
+                        max_digits=10,
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("DISPONIVEL", "Disponível"),
+                            ("EM_USO", "Em uso"),
+                            ("MANUTENCAO", "Manutenção"),
+                        ],
+                        default="DISPONIVEL",
+                        help_text="Status atual do veículo",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "motorista",
+                    models.OneToOneField(
+                        blank=True,
+                        help_text="Motorista responsável pelo veículo no momento",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="veiculo",
+                        to="core.motorista",
+                    ),
+                ),
             ],
         ),
         migrations.AddField(
-            model_name='rota',
-            name='veiculo',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='rotas', to='core.veiculo'),
+            model_name="rota",
+            name="veiculo",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="rotas",
+                to="core.veiculo",
+            ),
         ),
     ]

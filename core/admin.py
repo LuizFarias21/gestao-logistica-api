@@ -56,7 +56,13 @@ class VeiculoAdmin(admin.ModelAdmin):
 @admin.register(Rota)
 class RotaAdmin(admin.ModelAdmin):
     list_display = ("id", "nome", "status", "motorista", "veiculo", "data_rota")
-    search_fields = ("nome", "descricao", "motorista__nome", "motorista__cpf", "veiculo__placa")
+    search_fields = (
+        "nome",
+        "descricao",
+        "motorista__nome",
+        "motorista__cpf",
+        "veiculo__placa",
+    )
     list_filter = ("status", "data_rota")
     ordering = ("-data_rota", "id")
     date_hierarchy = "data_rota"
@@ -90,7 +96,12 @@ class EntregaAdmin(admin.ModelAdmin):
         "endereco_origem",
         "endereco_destino",
     )
-    list_filter = ("status", "data_solicitacao", "data_entrega_prevista", "data_entrega_real")
+    list_filter = (
+        "status",
+        "data_solicitacao",
+        "data_entrega_prevista",
+        "data_entrega_real",
+    )
     ordering = ("-data_solicitacao", "id")
     date_hierarchy = "data_solicitacao"
     readonly_fields = ("data_solicitacao",)

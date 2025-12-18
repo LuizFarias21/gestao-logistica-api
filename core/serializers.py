@@ -50,7 +50,9 @@ class EntregaSerializer(serializers.ModelSerializer):
         if instance is not None and instance.pk:
             qs = qs.exclude(pk=instance.pk)
 
-        capacidade_atual = qs.aggregate(total=Sum("capacidade_necessaria")).get("total") or Decimal("0")
+        capacidade_atual = qs.aggregate(total=Sum("capacidade_necessaria")).get(
+            "total"
+        ) or Decimal("0")
         capacidade_maxima = rota.veiculo.capacidade_maxima
 
         if capacidade_atual + capacidade_necessaria > capacidade_maxima:
@@ -82,11 +84,13 @@ class RotaSerializer(serializers.ModelSerializer):
         fields = "__all__"
         read_only_fields = ["data_rota"]
 
+
 class EntregaClienteSerializer(serializers.ModelSerializer):
     """
     Serializer restrito para visão do Cliente.
     Mostra apenas identificação, status e previsão.
     """
+
     class Meta:
         model = Entrega
         fields = ["codigo_rastreio", "status", "data_entrega_prevista"]
