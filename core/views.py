@@ -1,6 +1,8 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+from rest_framework.response import Response
+from rest_framework.decorators import action
 
-from .models import Cliente, Motorista, Veiculo
+from .models import Cliente, Motorista, Veiculo, Rota, Entrega
 from .serializers import (
     ClienteSerializer,
     MotoristaSerializer,
@@ -24,15 +26,83 @@ class ClienteViewSet(viewsets.ModelViewSet):
 
 
 class MotoristaViewSet(viewsets.ModelViewSet):
-    """
-    Gerenciamento de Motoristas (CRUD).
-    Apenas Gestores podem criar, editar ou ver a lista completa de motoristas.
-    """
 
+   
     queryset = Motorista.objects.all()
     serializer_class = MotoristaSerializer
     permission_classes = [IsGestor]
 
+    @action(detail=True, methods=["patch"], url_path="atribuir-veiculo", permission_classes=[IsGestor])
+    def atribuir_veiculo(self, request, pk=None):
+        motorista = self.get_object()
+        veiculo_id = request.data.get("veiculo_id")
+
+      
+        if veiculo_id is None:
+            try:
+                veiculo_atual = motorista.veiculo
+            except Veiculo.DoesNotExist:
+                veiculo_atual = None
+
+            if veiculo_atual:
+                veiculo_atual.motorista = None
+                veiculo_atual.save()
+
+            motorista.status = "disponivel"
+            motorista.save()
+
+            serializer = MotoristaSerializer(motorista)
+            return Response({"detail": "Veículo desvinculado com sucesso.", "motorista": serializer.data})
+
+   
+        try:
+            veiculo_id = int(veiculo_id)
+        except (TypeError, ValueError):
+            return Response({"detail": "O 'veiculo_id' deve ser um número inteiro."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            veiculo = Veiculo.objects.get(pk=veiculo_id)
+        except Veiculo.DoesNotExist:
+            return Response({"detail": "Veículo não encontrado."}, status=status.HTTP_404_NOT_FOUND)
+
+        
+        if veiculo.motorista and veiculo.motorista != motorista:
+            return Response({"detail": f"Veículo de ID {veiculo_id} já está em uso por outro motorista."}, status=status.HTTP_409_CONFLICT)
+
+      
+        veiculo.motorista = motorista
+        veiculo.save()
+
+        motorista.status = "disponivel"
+        motorista.save()
+
+        serializer = MotoristaSerializer(motorista)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["get"], url_path="entregas", permission_classes=[IsMotorista])
+    def entregas(self, request, pk=None):
+        motorista = self.get_object()
+
+       
+        if not request.user.is_staff:
+            if not hasattr(request.user, "motorista") or request.user.motorista.id != motorista.id:
+                return Response({"detail": "Acesso negado."}, status=status.HTTP_403_FORBIDDEN)
+
+        entregas = Entrega.objects.filter(motorista=motorista)
+        serializer = EntregaSerializer(entregas, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=["get"], url_path="rotas", permission_classes=[IsMotorista])
+    def rotas(self, request, pk=None):
+        motorista = self.get_object()
+
+        if not request.user.is_staff:
+            if not hasattr(request.user, "motorista") or request.user.motorista.id != motorista.id:
+                return Response({"detail": "Acesso negado."}, status=status.HTTP_403_FORBIDDEN)
+
+        rotas = Rota.objects.filter(motorista=motorista)
+        serializer = RotaSerializer(rotas, many=True)
+        return Response(serializer.data)
 
 class VeiculoViewSet(viewsets.ModelViewSet):
     """
