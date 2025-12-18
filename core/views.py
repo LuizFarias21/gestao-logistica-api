@@ -1,6 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from django.shortcuts import get_object_or_404
 
 from .models import Cliente, Motorista, Veiculo, Rota, Entrega
 from .serializers import (
@@ -43,111 +44,55 @@ class MotoristaViewSet(viewsets.ModelViewSet):
 
     queryset = Motorista.objects.all()
     serializer_class = MotoristaSerializer
-    permission_classes = [IsGestor]
-
-    @action(
-        detail=True,
-        methods=["patch"],
-        url_path="atribuir-veiculo",
-        permission_classes=[IsGestor],
-    )
-    def atribuir_veiculo(self, request, pk=None):
-        motorista = self.get_object()
-        veiculo_id = request.data.get("veiculo_id")
-
-        if veiculo_id is None:
-            try:
-                veiculo_atual = motorista.veiculo
-            except Veiculo.DoesNotExist:
-                veiculo_atual = None
-
-            if veiculo_atual:
-                veiculo_atual.motorista = None
-                veiculo_atual.save()
-
-            motorista.status = "disponivel"
-            motorista.save()
-
-            serializer = MotoristaSerializer(motorista)
-            return Response(
-                {
-                    "detail": "Veículo desvinculado com sucesso.",
-                    "motorista": serializer.data,
-                }
-            )
-
-        try:
-            veiculo_id = int(veiculo_id)
-        except (TypeError, ValueError):
-            return Response(
-                {"detail": "O 'veiculo_id' deve ser um número inteiro."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            veiculo = Veiculo.objects.get(pk=veiculo_id)
-        except Veiculo.DoesNotExist:
-            return Response(
-                {"detail": "Veículo não encontrado."}, status=status.HTTP_404_NOT_FOUND
-            )
-
-        if veiculo.motorista and veiculo.motorista != motorista:
-            return Response(
-                {
-                    "detail": f"Veículo de ID {veiculo_id} já está em uso por outro motorista."
-                },
-                status=status.HTTP_409_CONFLICT,
-            )
-
-        veiculo.motorista = motorista
-        veiculo.save()
-
-        motorista.status = "disponivel"
-        motorista.save()
-
-        serializer = MotoristaSerializer(motorista)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+    permission_classes = [IsGestor | IsMotorista]
 
     @action(
         detail=True,
         methods=["get"],
-        url_path="entregas",
         permission_classes=[IsMotorista],
     )
     def entregas(self, request, pk=None):
         motorista = self.get_object()
 
-        if not request.user.is_staff:
-            if (
-                not hasattr(request.user, "motorista")
-                or request.user.motorista.id != motorista.id
-            ):
-                return Response(
-                    {"detail": "Acesso negado."}, status=status.HTTP_403_FORBIDDEN
-                )
-
         entregas = Entrega.objects.filter(motorista=motorista)
         serializer = EntregaSerializer(entregas, many=True)
         return Response(serializer.data)
 
-    @action(
-        detail=True, methods=["get"], url_path="rotas", permission_classes=[IsMotorista]
-    )
+    @action(detail=True, methods=["get"], permission_classes=[IsMotorista])
     def rotas(self, request, pk=None):
         motorista = self.get_object()
-
-        if not request.user.is_staff:
-            if (
-                not hasattr(request.user, "motorista")
-                or request.user.motorista.id != motorista.id
-            ):
-                return Response(
-                    {"detail": "Acesso negado."}, status=status.HTTP_403_FORBIDDEN
-                )
 
         rotas = Rota.objects.filter(motorista=motorista)
         serializer = RotaSerializer(rotas, many=True)
         return Response(serializer.data)
+
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="atribuir-veiculo",
+        permission_classes=[IsGestor],
+    )
+    def atribuir_veiculo(self, request, pk=None):
+        motorista = self.get_object()
+        veiculo = request.data.get("veiculo")
+
+        if not veiculo:
+            return Response(
+                {"erro": "O campo 'veiculo' é obrigatório."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        veiculo = get_object_or_404(Veiculo, id=veiculo)
+
+        veiculo.motorista = motorista
+        veiculo.save()
+
+        return Response(
+            {
+                "mensagem": f"Veículo {veiculo.placa} vinculado ao motorista {motorista.nome} com sucesso!"
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class VeiculoViewSet(viewsets.ModelViewSet):

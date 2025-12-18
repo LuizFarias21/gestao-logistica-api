@@ -27,13 +27,22 @@ class IsMotorista(permissions.BasePermission):
         if request.user.is_staff:
             return True
 
-        if not hasattr(request.user, "motorista") or request.method == "DELETE":
+        if not hasattr(request.user, "motorista"):
+            return False
+
+        if view.action == "list":
+            return False
+
+        if request.method not in permissions.SAFE_METHODS:
             return False
 
         return True
 
     def has_object_permission(self, request, view, obj):
         if request.user.is_staff:
+            return True
+
+        if hasattr(request.user, "motorista") and obj == request.user.motorista:
             return True
 
         if getattr(obj, "motorista", None) == request.user.motorista:
