@@ -1,5 +1,5 @@
 
-# API Sistema de Gestão de Logística e Entregas
+# 🚚 API Sistema de Gestão de Logística e Entregas
 
 [![Python](https://img.shields.io/badge/Python-3.12%2B-blue.svg?logo=python)](https://www.python.org/downloads/)
 [![Django](https://img.shields.io/badge/Django-5.0%2B-green.svg?logo=Django)](https://www.djangoproject.com/)
