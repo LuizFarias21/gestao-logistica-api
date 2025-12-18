@@ -27,10 +27,26 @@ class ClienteViewSet(viewsets.ModelViewSet):
 
 class MotoristaViewSet(viewsets.ModelViewSet):
 
-   
     queryset = Motorista.objects.all()
     serializer_class = MotoristaSerializer
-    permission_classes = [IsGestor]
+    permission_classes = [IsGestor | IsMotorista]
+
+    def get_permissions(self):
+        """Ajusta permissões por ação:
+        - list/create/destroy => apenas Gestores
+        - retrieve/update/partial_update => Gestores OU o próprio Motorista
+        - ações customizadas (entregas/rotas) => Motorista (com verificação adicional no método)
+        """
+        if self.action in ("list", "create", "destroy"):
+            permission_classes = [IsGestor]
+        elif self.action in ("retrieve", "update", "partial_update"):
+            permission_classes = [IsGestor | IsMotorista]
+        elif self.action in ("entregas", "rotas"):
+            permission_classes = [IsMotorista]
+        else:
+            permission_classes = self.permission_classes
+
+        return [permission() for permission in permission_classes]
 
     @action(detail=True, methods=["patch"], url_path="atribuir-veiculo", permission_classes=[IsGestor])
     def atribuir_veiculo(self, request, pk=None):

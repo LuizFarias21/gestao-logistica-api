@@ -22,7 +22,9 @@ urlpatterns = [
     path("schema/", SpectacularAPIView.as_view(), name="schema"),
     path("docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
     path("docs/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
-    # Rota explícita para listar entregas de um motorista (action 'entregas' no MotoristaViewSet)
+    
     path("motoristas/<int:pk>/entregas/", MotoristaViewSet.as_view({"get": "entregas"}), name="motorista-entregas"),
+   
+    path("motoristas/<int:pk>/rotas/", MotoristaViewSet.as_view({"get": "rotas"}), name="motorista-rotas"),
     path("", include(router.urls)),
 ]

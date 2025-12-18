@@ -1,4 +1,5 @@
 from rest_framework import permissions
+from .models import Motorista
 
 
 class IsGestor(permissions.BasePermission):
@@ -34,6 +35,10 @@ class IsMotorista(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         if request.user.is_staff:
+            return True
+
+        # Motorista pode acessar seu próprio registro de Motorista
+        if isinstance(obj, Motorista) and obj == request.user.motorista:
             return True
 
         if getattr(obj, "motorista", None) == request.user.motorista:
