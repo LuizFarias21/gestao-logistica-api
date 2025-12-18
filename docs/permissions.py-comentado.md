@@ -1,4 +1,3 @@
-````markdown
 # permissions.py
 
 ## Visão geral
@@ -253,5 +252,3 @@ Por isso é comum:
 
 - Permitir `PATCH` para motorista (por permissão),
 - mas restringir os campos editáveis (por serializer) a `status` e `observacoes`.
-
-````
