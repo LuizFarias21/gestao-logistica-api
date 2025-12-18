@@ -2,6 +2,9 @@ from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
+from django.db import transaction
+from django.db.models import Sum
+from decimal import Decimal
 
 from .models import Cliente, Motorista, Veiculo, Rota, Entrega
 from .serializers import (
@@ -9,10 +12,12 @@ from .serializers import (
     MotoristaSerializer,
     RotaSerializer,
     EntregaSerializer,
+    EntregaMotoristaUpdateSerializer,
     VeiculoSerializer,
     EntregaClienteSerializer,
     AtribuirVeiculoRequestSerializer,
     AtribuirMotoristaRequestSerializer,
+    AtribuirEntregasRotaRequestSerializer,
     MensagemResponseSerializer,
     RotaDashboardResponseSerializer,
 )
@@ -235,6 +240,78 @@ class RotaViewSet(viewsets.ModelViewSet):
         }
         return Response(data)
 
+    @extend_schema(
+        summary="Atribuir Entregas à Rota (com validação de capacidade)",
+        description=(
+            "Vincula uma ou mais entregas à rota e valida a regra: "
+            "Soma(capacidade_necessaria) ≤ capacidade_maxima do veículo. "
+            "As entregas são vinculadas também ao motorista da rota."
+        ),
+        request=AtribuirEntregasRotaRequestSerializer,
+        responses={200: MensagemResponseSerializer},
+    )
+    @action(
+        detail=True,
+        methods=["post"],
+        url_path="atribuir-entregas",
+        permission_classes=[IsGestor],
+    )
+    def atribuir_entregas(self, request, pk=None):
+        rota = self.get_object()
+
+        serializer = AtribuirEntregasRotaRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        codigos = serializer.validated_data["entregas"]
+
+        capacidade_maxima = rota.veiculo.capacidade_maxima
+        capacidade_atual = (
+            Entrega.objects.filter(rota=rota)
+            .aggregate(total=Sum("capacidade_necessaria"))
+            .get("total")
+            or Decimal("0")
+        )
+
+        with transaction.atomic():
+            for codigo in codigos:
+                entrega = get_object_or_404(Entrega, codigo_rastreio=codigo)
+
+                if entrega.rota_id and entrega.rota_id != rota.id:
+                    raise ValidationError(
+                        {
+                            "entregas": (
+                                f"A entrega {codigo} já está atribuída a outra rota (id={entrega.rota_id})."
+                            )
+                        }
+                    )
+
+                nova_capacidade = capacidade_atual + entrega.capacidade_necessaria
+                if nova_capacidade > capacidade_maxima:
+                    raise ValidationError(
+                        {
+                            "entregas": (
+                                "Capacidade do veículo excedida ao atribuir entregas à rota. "
+                                f"Capacidade máxima: {capacidade_maxima}. "
+                                f"Capacidade atual: {capacidade_atual}. "
+                                f"Tentando adicionar entrega {codigo} (capacidade {entrega.capacidade_necessaria})."
+                            )
+                        }
+                    )
+
+                entrega.rota = rota
+                entrega.motorista = rota.motorista
+                entrega.save(update_fields=["rota", "motorista"])
+                capacidade_atual = nova_capacidade
+
+        return Response(
+            {
+                "mensagem": (
+                    f"{len(codigos)} entrega(s) atribuída(s) à rota {rota.id} com sucesso. "
+                    f"Capacidade utilizada: {capacidade_atual}/{capacidade_maxima}."
+                )
+            },
+            status=status.HTTP_200_OK,
+        )
+
 
 class EntregaViewSet(viewsets.ModelViewSet):
     """
@@ -256,6 +333,12 @@ class EntregaViewSet(viewsets.ModelViewSet):
 
         if hasattr(self.request.user, "cliente") and not self.request.user.is_staff:
             return EntregaClienteSerializer
+
+        if hasattr(self.request.user, "motorista") and not self.request.user.is_staff:
+            if self.action in ["update", "partial_update"]:
+                return EntregaMotoristaUpdateSerializer
+            if self.action in ["marcar_entregue"]:
+                return EntregaSerializer
         
         return EntregaSerializer
 
