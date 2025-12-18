@@ -25,6 +25,7 @@ class EntregaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Entrega
         fields = "__all__"
+        read_only_fields = ["data_solicitacao", "data_entrega_real"]
 
 
 class RotaSerializer(serializers.ModelSerializer):

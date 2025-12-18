@@ -14,6 +14,7 @@ from .serializers import (
 from .permissions import IsGestor, IsMotorista, IsCliente
 from drf_spectacular.utils import extend_schema
 from rest_framework.exceptions import ValidationError
+from django.utils import timezone
 
 
 class ClienteViewSet(viewsets.ModelViewSet):
@@ -167,12 +168,110 @@ class EntregaViewSet(viewsets.ModelViewSet):
     Clientes: Visualizam apenas suas próprias entregas (somente leitura).
     """
 
+    queryset = Entrega.objects.all()
     serializer_class = EntregaSerializer
     permission_classes = [IsGestor | IsMotorista | IsCliente]
 
     def get_queryset(self):
-        # TODO: Implementar lógica de filtragem de segurança.
-        # 1. Gestor -> Retorna tudo.
-        # 2. Motorista -> Retorna entregas vinculadas à sua rota atual.
-        # 3. Cliente -> Retorna entregas vinculadas ao seu ID (user.cliente).
-        pass
+        user = self.request.user
+
+        if user.is_staff:
+            return Entrega.objects.all()
+
+        if hasattr(user, "motorista"):
+            return Entrega.objects.filter(motorista=user.motorista)
+
+        if hasattr(user, "cliente"):
+            return Entrega.objects.filter(cliente=user.cliente)
+
+        return Entrega.objects.none()
+
+    def perform_create(self, serializer):
+        if not serializer.validated_data.get("endereco_origem"):
+            raise ValidationError(
+                {"endereco_origem": "O endereço de origem é obrigatório."}
+            )
+
+        if not serializer.validated_data.get("endereco_destino"):
+            raise ValidationError(
+                {"endereco_destino": "O endereço de destino é obrigatório."}
+            )
+
+        if not serializer.validated_data.get("cliente"):
+            raise ValidationError({"cliente": "O cliente é obrigatório."})
+
+        serializer.save()
+
+    @extend_schema(
+        summary="Atribuir Motorista",
+        description="Vincula manualmente um motorista específico a esta entrega.",
+        request={"type": "object", "properties": {"motorista_id": {"type": "integer"}}},
+        responses={200: EntregaSerializer},
+    )
+    @action(detail=True, methods=["patch"])
+    def atribuir_motorista(self, request, pk=None):
+        entrega = self.get_object()
+        motorista_id = request.data.get("motorista_id")
+
+        if not motorista_id:
+            return Response(
+                {"erro": "O campo motorista_id é obrigatório."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            motorista = Motorista.objects.get(pk=motorista_id)
+        except Motorista.DoesNotExist:
+            return Response(
+                {"erro": "Motorista não encontrado."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        entrega.motorista = motorista
+        entrega.save()
+
+        serializer = self.get_serializer(entrega)
+        return Response(serializer.data)
+
+    @extend_schema(
+        summary="Rastreamento da Entrega",
+        description="Retorna informações de rastreamento da entrega, incluindo status e previsão de entrega.",
+        responses={200: EntregaSerializer},
+    )
+    @action(detail=True, methods=["get"])
+    def rastreamento(self, request, pk=None):
+        entrega = self.get_object()
+        serializer = self.get_serializer(entrega)
+
+        return Response(
+            {
+                "codigo_rastreio": entrega.codigo_rastreio,
+                "status": entrega.status,
+                "data_entrega_prevista": entrega.data_entrega_prevista,
+                "data_entrega_real": entrega.data_entrega_real,
+                "endereco_origem": entrega.endereco_origem,
+                "endereco_destino": entrega.endereco_destino,
+            }
+        )
+
+    @extend_schema(
+        summary="Marcar como Entregue",
+        description="Atualiza o status da entrega para 'entregue' e registra a data de entrega real.",
+        responses={200: EntregaSerializer},
+    )
+    @action(detail=True, methods=["patch"])
+    def marcar_entregue(self, request, pk=None):
+        entrega = self.get_object()
+
+        if entrega.status == "entregue":
+            return Response(
+                {"erro": "Esta entrega já foi marcada como entregue."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        entrega.status = "entregue"
+        entrega.data_entrega_real = timezone.now()
+        entrega.save()
+
+        serializer = self.get_serializer(entrega)
+        return Response(serializer.data)

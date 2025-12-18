@@ -126,12 +126,82 @@ class Rota(models.Model):
 
 
 class Entrega(models.Model):
+    STATUS_CHOICES = (
+        ("pendente", "Pendente"),
+        ("em_transito", "Em Trânsito"),
+        ("entregue", "Entregue"),
+        ("cancelada", "Cancelada"),
+    )
+
+    codigo_rastreio = models.CharField(
+        max_length=50, unique=True, help_text="Código único de rastreamento da entrega"
+    )
+
+    cliente = models.ForeignKey(
+        Cliente,
+        on_delete=models.PROTECT,
+        related_name="entregas",
+        help_text="Cliente solicitante da entrega",
+    )
+
+    rota = models.ForeignKey(
+        Rota,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="entregas",
+        help_text="Rota associada à entrega",
+    )
+
     motorista = models.ForeignKey(
         Motorista,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name="entregas",
+        help_text="Motorista responsável pela entrega",
     )
 
-    codigo_rastreio = models.CharField(max_length=50)
+    endereco_origem = models.CharField(
+        max_length=255, help_text="Endereço de origem da entrega"
+    )
+
+    endereco_destino = models.CharField(
+        max_length=255, help_text="Endereço de destino da entrega"
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="pendente",
+        help_text="Status atual da entrega",
+    )
+
+    capacidade_necessaria = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        help_text="Peso ou volume necessário em KG para o transporte",
+    )
+
+    valor_frete = models.DecimalField(
+        max_digits=10, decimal_places=2, help_text="Valor do frete em reais"
+    )
+
+    data_solicitacao = models.DateTimeField(
+        auto_now_add=True, null=True, help_text="Data e hora da solicitação da entrega"
+    )
+
+    data_entrega_prevista = models.DateTimeField(
+        null=True, blank=True, help_text="Data e hora prevista para a entrega"
+    )
+
+    data_entrega_real = models.DateTimeField(
+        null=True, blank=True, help_text="Data e hora real da entrega concluída"
+    )
+
+    observacoes = models.TextField(
+        blank=True, help_text="Observações adicionais sobre a entrega"
+    )
+
+    def __str__(self):
+        return f"{self.codigo_rastreio} - {self.status}"

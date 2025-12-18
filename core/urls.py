@@ -6,14 +6,14 @@ from drf_spectacular.views import (
     SpectacularRedocView,
     SpectacularSwaggerView,
 )
-from .views import MotoristaViewSet, VeiculoViewSet, ClienteViewSet
+from .views import MotoristaViewSet, VeiculoViewSet, ClienteViewSet, EntregaViewSet
 
 router = DefaultRouter()
 
 router.register(r"motoristas", MotoristaViewSet, basename="motorista")
 router.register(r"veiculos", VeiculoViewSet, basename="veiculo")
 router.register(r"clientes", ClienteViewSet, basename="cliente")
-# router.register(r"entregas", EntregaViewSet)
+router.register(r"entregas", EntregaViewSet, basename="entrega")
 # router.register(r"rotas", RotaViewSet)
 
 urlpatterns = [
